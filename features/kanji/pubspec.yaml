@@ -1,0 +1,13 @@
+name: kanji
+description: Feature barrel re-exporting kanji_domain and kanji_data.
+publish_to: 'none'
+version: 0.0.1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  kanji_domain:
+    path: ./domain
+  kanji_data:
+    path: ./data
