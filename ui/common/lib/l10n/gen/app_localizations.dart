@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
+import 'app_localizations_pt.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,13 +93,76 @@ abstract class AppLocalizations {
       ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('pt'),
+  ];
 
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
   /// **'KanjiPro'**
   String get appTitle;
+
+  /// No description provided for @levelN5.
+  ///
+  /// In en, this message translates to:
+  /// **'JLPT N5'**
+  String get levelN5;
+
+  /// No description provided for @study.
+  ///
+  /// In en, this message translates to:
+  /// **'Study'**
+  String get study;
+
+  /// No description provided for @quiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz'**
+  String get quiz;
+
+  /// No description provided for @modeOnReading.
+  ///
+  /// In en, this message translates to:
+  /// **'On\'yomi'**
+  String get modeOnReading;
+
+  /// No description provided for @modeKunReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Kun\'yomi'**
+  String get modeKunReading;
+
+  /// No description provided for @modeMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get modeMeaning;
+
+  /// No description provided for @ttsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese voice not installed. Install it in your device\'s text-to-speech settings.'**
+  String get ttsUnavailable;
+
+  /// No description provided for @correct.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct'**
+  String get correct;
+
+  /// No description provided for @wrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong'**
+  String get wrong;
+
+  /// No description provided for @results.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get results;
 }
 
 class _AppLocalizationsDelegate
@@ -112,7 +176,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+      <String>['en', 'pt'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -123,6 +187,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return AppLocalizationsEn();
+    case 'pt':
+      return AppLocalizationsPt();
   }
 
   throw FlutterError(

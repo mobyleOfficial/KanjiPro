@@ -4,9 +4,9 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class AppLocalizationsEn extends AppLocalizations {
-  AppLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for Portuguese (`pt`).
+class AppLocalizationsPt extends AppLocalizations {
+  AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
   String get appTitle => 'KanjiPro';
@@ -15,7 +15,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get levelN5 => 'JLPT N5';
 
   @override
-  String get study => 'Study';
+  String get study => 'Estudar';
 
   @override
   String get quiz => 'Quiz';
@@ -27,18 +27,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modeKunReading => 'Kun\'yomi';
 
   @override
-  String get modeMeaning => 'Meaning';
+  String get modeMeaning => 'Significado';
 
   @override
   String get ttsUnavailable =>
-      'Japanese voice not installed. Install it in your device\'s text-to-speech settings.';
+      'Voz em japonês não instalada. Instale nas configurações de leitura de voz do dispositivo.';
 
   @override
-  String get correct => 'Correct';
+  String get correct => 'Certo';
 
   @override
-  String get wrong => 'Wrong';
+  String get wrong => 'Errado';
 
   @override
-  String get results => 'Results';
+  String get results => 'Resultados';
 }
