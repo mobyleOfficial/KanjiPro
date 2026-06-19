@@ -1,0 +1,13 @@
+name: core
+description: Shared base classes for KanjiPro.
+publish_to: 'none'
+version: 0.0.1
+environment:
+  sdk: ^3.11.4
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
