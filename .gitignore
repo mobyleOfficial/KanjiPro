@@ -49,3 +49,4 @@ tool/.venv/
 
 # Sub-package build artifacts
 ui/common/build/
+features/**/build/
