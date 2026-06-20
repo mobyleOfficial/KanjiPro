@@ -85,6 +85,11 @@ Future<void> registerCrossPackageDependencies(_i174.GetIt getIt) async {
   getIt.registerFactory<_i_progress_domain.SelectNextKanji>(
     () => _i_progress_domain.SelectNextKanji(),
   );
+  getIt.registerFactory<_i_progress_domain.ResetKanjiProgress>(
+    () => _i_progress_domain.ResetKanjiProgress(
+      getIt<_i_progress_domain.ProgressRepository>(),
+    ),
+  );
 
   // ── Quiz feature ───────────────────────────────────────────────────────────
   getIt.registerFactory<_i_quiz_domain.GenerateQuiz>(
@@ -116,6 +121,8 @@ Future<void> registerCrossPackageDependencies(_i174.GetIt getIt) async {
     () => _i_study_ui.StudyCubit(
       getKanjiByLevel: getIt<_i_kanji_domain.GetKanjiByLevel>(),
       ttsService: getIt<_i_common.TtsService>(),
+      progressRepository: getIt<_i_progress_domain.ProgressRepository>(),
+      resetKanjiProgress: getIt<_i_progress_domain.ResetKanjiProgress>(),
     ),
   );
 

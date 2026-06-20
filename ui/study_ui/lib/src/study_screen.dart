@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kanji_domain/kanji_domain.dart';
+import 'package:progress_domain/progress_domain.dart';
 
 import 'study_cubit.dart';
 import 'study_state.dart';
@@ -19,9 +20,9 @@ class StudyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider<StudyCubit>(
-        create: (_) => GetIt.instance<StudyCubit>()..load(level),
-        child: _StudyContent(level: level),
-      );
+    create: (_) => GetIt.instance<StudyCubit>()..load(level),
+    child: _StudyContent(level: level),
+  );
 }
 
 class _StudyContent extends StatelessWidget {
@@ -50,13 +51,15 @@ class _StudyContent extends StatelessWidget {
       ),
       body: BlocBuilder<StudyCubit, StudyState>(
         builder: (context, state) => switch (state) {
-          StudyLoading() =>
-            const Center(child: CircularProgressIndicator()),
+          StudyLoading() => const Center(child: CircularProgressIndicator()),
           StudyError(:final message) => Center(child: Text(message)),
-          StudySuccess(:final kanji) when kanji.isEmpty =>
-            const Center(child: Icon(Icons.inbox_outlined, size: 64)),
-          StudySuccess(:final kanji) => _FlashcardPageView(
+          StudySuccess(:final kanji) when kanji.isEmpty => const Center(
+            child: Icon(Icons.inbox_outlined, size: 64),
+          ),
+          StudySuccess(:final kanji, :final progressByLiteral) =>
+            _FlashcardPageView(
               kanjiList: kanji,
+              progressByLiteral: progressByLiteral,
               localizations: localizations,
             ),
         },
@@ -68,10 +71,12 @@ class _StudyContent extends StatelessWidget {
 class _FlashcardPageView extends StatefulWidget {
   const _FlashcardPageView({
     required this.kanjiList,
+    required this.progressByLiteral,
     required this.localizations,
   });
 
   final List<Kanji> kanjiList;
+  final Map<String, KanjiProgress> progressByLiteral;
   final AppLocalizations localizations;
 
   @override
@@ -99,6 +104,8 @@ class _FlashcardPageViewState extends State<_FlashcardPageView> {
             onPageChanged: (index) => setState(() => _currentIndex = index),
             itemBuilder: (context, index) => _KanjiCard(
               kanji: widget.kanjiList[index],
+              progress:
+                  widget.progressByLiteral[widget.kanjiList[index].literal],
               localizations: widget.localizations,
             ),
           ),
@@ -119,9 +126,11 @@ class _KanjiCard extends StatelessWidget {
   const _KanjiCard({
     required this.kanji,
     required this.localizations,
+    this.progress,
   });
 
   final Kanji kanji;
+  final KanjiProgress? progress;
   final AppLocalizations localizations;
 
   @override
@@ -181,6 +190,16 @@ class _KanjiCard extends StatelessWidget {
                 textTheme: textTheme,
               ),
 
+              // Mastery block — only shown when a progress record exists
+              if (progress != null) ...[
+                const SizedBox(height: 20),
+                _MasteryBlock(
+                  kanji: kanji,
+                  progress: progress!,
+                  localizations: localizations,
+                ),
+              ],
+
               // Examples section — only shown when examples are available
               if (kanji.examples.isNotEmpty) ...[
                 const SizedBox(height: 20),
@@ -195,6 +214,139 @@ class _KanjiCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Shows mastery badge, N/10 streak bar, and a Reset button for a kanji
+/// that has at least one progress record.
+class _MasteryBlock extends StatelessWidget {
+  const _MasteryBlock({
+    required this.kanji,
+    required this.progress,
+    required this.localizations,
+  });
+
+  final Kanji kanji;
+  final KanjiProgress progress;
+  final AppLocalizations localizations;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isMastered = progress.status == ProgressStatus.mastered;
+
+    final badgeBackground = isMastered
+        ? colorScheme.primaryContainer
+        : colorScheme.surfaceContainerHighest;
+    final badgeForeground = isMastered
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
+    final badgeLabel = isMastered
+        ? localizations.masteryMastered
+        : localizations.masteryInProgress;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Mastery label row: badge on the left, Reset button on the right.
+        Row(
+          children: [
+            // Status badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: badgeBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                badgeLabel,
+                style: textTheme.labelMedium?.copyWith(color: badgeForeground),
+              ),
+            ),
+            const Spacer(),
+            // Reset button — ≥48dp touch target via SizedBox
+            Semantics(
+              button: true,
+              label: localizations.resetMastery,
+              child: SizedBox(
+                height: _kMinTouchTarget,
+                child: TextButton(
+                  onPressed: () => _confirmReset(context),
+                  child: Text(localizations.resetMastery),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // N / 10 label
+        Text(
+          '${progress.hitCount} / $kMasteryTarget',
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 6),
+        // 10-segment streak bar
+        _StreakBar(hitCount: progress.hitCount, colorScheme: colorScheme),
+      ],
+    );
+  }
+
+  Future<void> _confirmReset(BuildContext context) async {
+    final cubit = context.read<StudyCubit>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(localizations.resetMasteryTitle),
+        content: Text(localizations.resetMasteryBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(localizations.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(localizations.resetMastery),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await cubit.resetKanji(kanji.literal);
+    }
+  }
+}
+
+/// 10-segment horizontal bar reflecting the kanji's current [hitCount].
+/// Filled segments use [ColorScheme.primary]; empty segments use
+/// [ColorScheme.surfaceContainerHighest] for WCAG-safe contrast.
+class _StreakBar extends StatelessWidget {
+  const _StreakBar({required this.hitCount, required this.colorScheme});
+
+  final int hitCount;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(kMasteryTarget, (index) {
+        final filled = index < hitCount;
+        return Expanded(
+          child: Container(
+            height: 8,
+            margin: const EdgeInsets.symmetric(horizontal: 1),
+            decoration: BoxDecoration(
+              color: filled
+                  ? colorScheme.primary
+                  : colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        );
+      }),
     );
   }
 }
@@ -232,9 +384,7 @@ class _ReadingRow extends StatelessWidget {
         Expanded(
           child: Text(
             displayText,
-            style: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurface,
-            ),
+            style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
           ),
         ),
       ],
@@ -385,9 +535,10 @@ class _ReadingChip extends StatelessWidget {
       reading,
       style: textTheme.bodyLarge?.copyWith(
         color: isAvailable ? colorScheme.primary : colorScheme.onSurface,
-        decoration: isAvailable ? TextDecoration.underline : TextDecoration.none,
-        decorationColor:
-            isAvailable ? colorScheme.primary : null,
+        decoration: isAvailable
+            ? TextDecoration.underline
+            : TextDecoration.none,
+        decorationColor: isAvailable ? colorScheme.primary : null,
       ),
     );
 
@@ -410,10 +561,7 @@ class _ReadingChip extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: _kMinTouchTarget),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: textWidget,
-            ),
+            child: Align(alignment: Alignment.centerLeft, child: textWidget),
           ),
         ),
       ),
@@ -543,9 +691,7 @@ class _ExampleRow extends StatelessWidget {
         Flexible(
           child: Text(
             example.meaning,
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.outline,
-            ),
+            style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
           ),
         ),
       ],
@@ -579,7 +725,9 @@ class _ExampleWordChip extends StatelessWidget {
       style: textTheme.bodyLarge?.copyWith(
         color: isAvailable ? colorScheme.primary : colorScheme.onSurface,
         fontWeight: FontWeight.bold,
-        decoration: isAvailable ? TextDecoration.underline : TextDecoration.none,
+        decoration: isAvailable
+            ? TextDecoration.underline
+            : TextDecoration.none,
         decorationColor: isAvailable ? colorScheme.primary : null,
       ),
     );
@@ -602,10 +750,7 @@ class _ExampleWordChip extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: _kMinTouchTarget),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: wordText,
-            ),
+            child: Align(alignment: Alignment.centerLeft, child: wordText),
           ),
         ),
       ),

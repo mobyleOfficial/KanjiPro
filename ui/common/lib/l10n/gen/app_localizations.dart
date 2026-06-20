@@ -229,6 +229,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mastery'**
   String get mastery;
+
+  /// Badge label when a kanji has reached full mastery
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get masteryMastered;
+
+  /// Badge label when a kanji is still being learned
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get masteryInProgress;
+
+  /// Button label to reset a kanji's mastery progress
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get resetMastery;
+
+  /// Title of the reset-mastery confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Reset progress?'**
+  String get resetMasteryTitle;
+
+  /// Body text of the reset-mastery confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'This kanji\'s mastery will go back to 0.'**
+  String get resetMasteryBody;
+
+  /// Generic cancel button label
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
 }
 
 class _AppLocalizationsDelegate

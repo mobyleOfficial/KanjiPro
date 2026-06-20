@@ -49,5 +49,17 @@
   "mastered": "Dominado!",
   "@mastered": { "description": "Banner exibido quando um kanji atinge domínio total" },
   "mastery": "Domínio",
-  "@mastery": { "description": "Rótulo para a linha de progresso de domínio por kanji" }
+  "@mastery": { "description": "Rótulo para a linha de progresso de domínio por kanji" },
+  "masteryMastered": "Dominado",
+  "@masteryMastered": { "description": "Rótulo do badge quando um kanji atingiu domínio total" },
+  "masteryInProgress": "Em progresso",
+  "@masteryInProgress": { "description": "Rótulo do badge quando um kanji ainda está sendo aprendido" },
+  "resetMastery": "Redefinir",
+  "@resetMastery": { "description": "Rótulo do botão para redefinir o progresso de domínio de um kanji" },
+  "resetMasteryTitle": "Redefinir progresso?",
+  "@resetMasteryTitle": { "description": "Título do diálogo de confirmação de redefinição" },
+  "resetMasteryBody": "O domínio deste kanji voltará a 0.",
+  "@resetMasteryBody": { "description": "Texto do corpo do diálogo de confirmação de redefinição" },
+  "cancel": "Cancelar",
+  "@cancel": { "description": "Rótulo genérico do botão cancelar" }
 }

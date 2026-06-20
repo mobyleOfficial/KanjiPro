@@ -6,4 +6,5 @@ export 'repositories/progress_repository.dart';
 export 'usecases/ensure_pool_initialized.dart';
 export 'usecases/get_level_progress.dart';
 export 'usecases/record_answer.dart';
+export 'usecases/reset_kanji_progress.dart';
 export 'usecases/select_next_kanji.dart';

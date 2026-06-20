@@ -49,5 +49,17 @@
   "mastered": "Mastered!",
   "@mastered": { "description": "Banner shown when a kanji reaches full mastery" },
   "mastery": "Mastery",
-  "@mastery": { "description": "Label for the per-kanji mastery progress row" }
+  "@mastery": { "description": "Label for the per-kanji mastery progress row" },
+  "masteryMastered": "Mastered",
+  "@masteryMastered": { "description": "Badge label when a kanji has reached full mastery" },
+  "masteryInProgress": "In progress",
+  "@masteryInProgress": { "description": "Badge label when a kanji is still being learned" },
+  "resetMastery": "Reset",
+  "@resetMastery": { "description": "Button label to reset a kanji's mastery progress" },
+  "resetMasteryTitle": "Reset progress?",
+  "@resetMasteryTitle": { "description": "Title of the reset-mastery confirmation dialog" },
+  "resetMasteryBody": "This kanji's mastery will go back to 0.",
+  "@resetMasteryBody": { "description": "Body text of the reset-mastery confirmation dialog" },
+  "cancel": "Cancel",
+  "@cancel": { "description": "Generic cancel button label" }
 }

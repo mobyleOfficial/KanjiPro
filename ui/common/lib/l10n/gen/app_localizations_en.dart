@@ -76,4 +76,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mastery => 'Mastery';
+
+  @override
+  String get masteryMastered => 'Mastered';
+
+  @override
+  String get masteryInProgress => 'In progress';
+
+  @override
+  String get resetMastery => 'Reset';
+
+  @override
+  String get resetMasteryTitle => 'Reset progress?';
+
+  @override
+  String get resetMasteryBody => 'This kanji\'s mastery will go back to 0.';
+
+  @override
+  String get cancel => 'Cancel';
 }

@@ -76,4 +76,22 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get mastery => 'Domínio';
+
+  @override
+  String get masteryMastered => 'Dominado';
+
+  @override
+  String get masteryInProgress => 'Em progresso';
+
+  @override
+  String get resetMastery => 'Redefinir';
+
+  @override
+  String get resetMasteryTitle => 'Redefinir progresso?';
+
+  @override
+  String get resetMasteryBody => 'O domínio deste kanji voltará a 0.';
+
+  @override
+  String get cancel => 'Cancelar';
 }

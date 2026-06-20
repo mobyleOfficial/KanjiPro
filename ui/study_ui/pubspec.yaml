@@ -17,6 +17,8 @@ dependencies:
     path: ../../core
   kanji_domain:
     path: ../../features/kanji/domain
+  progress_domain:
+    path: ../../features/progress/domain
 
 dev_dependencies:
   flutter_test:
