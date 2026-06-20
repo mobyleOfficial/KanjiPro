@@ -19,25 +19,108 @@ class QuizView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BlocProvider<QuizCubit>(
     create: (_) => GetIt.instance<QuizCubit>()..start(level, mode),
-    child: const _QuizContent(),
+    child: _QuizContent(mode: mode),
   );
 }
 
-class _QuizContent extends StatelessWidget {
-  const _QuizContent();
+class _QuizContent extends StatefulWidget {
+  const _QuizContent({required this.mode});
+
+  final QuizMode mode;
+
+  @override
+  State<_QuizContent> createState() => _QuizContentState();
+}
+
+class _QuizContentState extends State<_QuizContent> {
+  // Track the previous state so the BlocListener can diff properly.
+  QuizState _previous = const QuizLoading();
+
+  /// Returns the reading to speak on question appear in meaning mode:
+  /// first kun'yomi if available, else first on'yomi, else null.
+  String? _meaningModeReading(Kanji kanji) {
+    if (kanji.kunReadings.isNotEmpty) return kanji.kunReadings.first;
+    if (kanji.onReadings.isNotEmpty) return kanji.onReadings.first;
+    return null;
+  }
+
+  Future<void> _handleAudio(
+    QuizState previous,
+    QuizState current,
+    TtsService tts,
+    SoundEffectService sfx,
+  ) async {
+    if (current is! QuizQuestionState) return;
+
+    final isNewQuestion =
+        previous is! QuizQuestionState ||
+        previous.question.kanji.literal != current.question.kanji.literal ||
+        (previous.answered && !current.answered);
+
+    final justAnswered =
+        current.answered &&
+        (previous is! QuizQuestionState || !previous.answered);
+
+    try {
+      if (!current.answered && isNewQuestion) {
+        // New question appeared (unanswered state).
+        if (widget.mode == QuizMode.meaning) {
+          // Meaning mode: speak the kanji's main kun/on reading as a cue.
+          final reading = _meaningModeReading(current.question.kanji);
+          if (reading != null) {
+            final available = await tts.isJapaneseAvailable();
+            if (available) await tts.speak(reading);
+          }
+        }
+        // Reading modes: no audio on appear.
+      } else if (justAnswered) {
+        // Answer just submitted — play SFX in all modes.
+        final isCorrect = current.lastCorrect ?? false;
+        if (isCorrect) {
+          await sfx.playCorrect();
+        } else {
+          await sfx.playWrong();
+        }
+
+        // Reading modes only: speak the correct answer reading for reinforcement.
+        if (widget.mode == QuizMode.onReading ||
+            widget.mode == QuizMode.kunReading) {
+          final correctReading =
+              current.question.options[current.question.correctIndex];
+          final available = await tts.isJapaneseAvailable();
+          if (available) await tts.speak(correctReading);
+        }
+      }
+    } catch (_) {
+      // Audio failures must never crash the UI — swallow silently.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final tts = GetIt.instance<TtsService>();
+    final sfx = GetIt.instance<SoundEffectService>();
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.quiz)),
-      body: BlocBuilder<QuizCubit, QuizState>(
-        builder: (context, state) => switch (state) {
-          QuizLoading() => const Center(child: CircularProgressIndicator()),
-          QuizError(:final message) => Center(child: Text(message)),
-          QuizQuestionState() => _QuizQuestionWidget(state: state, l10n: l10n),
-        },
+    return BlocListener<QuizCubit, QuizState>(
+      listener: (context, current) {
+        final previous = _previous;
+        _previous = current;
+        // Intentionally not awaited — audio is a fire-and-forget side-effect.
+        _handleAudio(previous, current, tts, sfx);
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(l10n.quiz)),
+        body: BlocBuilder<QuizCubit, QuizState>(
+          builder: (context, state) => switch (state) {
+            QuizLoading() => const Center(child: CircularProgressIndicator()),
+            QuizError(:final message) => Center(child: Text(message)),
+            QuizQuestionState() => _QuizQuestionWidget(
+              state: state,
+              l10n: l10n,
+            ),
+          },
+        ),
       ),
     );
   }

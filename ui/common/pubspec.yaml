@@ -12,6 +12,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_tts: ^4.2.0
+  audioplayers: ^6.0.0
   intl: any
 
 dev_dependencies:
@@ -20,3 +21,5 @@ dev_dependencies:
 
 flutter:
   generate: true
+  assets:
+    - assets/audio/

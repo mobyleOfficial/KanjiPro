@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:audioplayers/audioplayers.dart' as _i_audioplayers;
 import 'package:common/common.dart' as _i_common;
 import 'package:flutter_tts/flutter_tts.dart' as _i_flutter_tts;
 import 'package:get_it/get_it.dart' as _i174;
@@ -24,9 +25,7 @@ import 'package:study_ui/study_ui.dart' as _i_study_ui;
 
 Future<void> registerCrossPackageDependencies(_i174.GetIt getIt) async {
   // ── AppRouter ──────────────────────────────────────────────────────────────
-  getIt.registerLazySingleton<_i_router.AppRouter>(
-    () => _i_router.AppRouter(),
-  );
+  getIt.registerLazySingleton<_i_router.AppRouter>(() => _i_router.AppRouter());
 
   // ── Kanji feature ──────────────────────────────────────────────────────────
   getIt.registerLazySingleton<_i_kanji_data.KanjiLocalDataSource>(
@@ -40,9 +39,8 @@ Future<void> registerCrossPackageDependencies(_i174.GetIt getIt) async {
 
   // Use cases — factories (never singleton)
   getIt.registerFactory<_i_kanji_domain.GetAllLevels>(
-    () => _i_kanji_domain.GetAllLevels(
-      getIt<_i_kanji_domain.KanjiRepository>(),
-    ),
+    () =>
+        _i_kanji_domain.GetAllLevels(getIt<_i_kanji_domain.KanjiRepository>()),
   );
   getIt.registerFactory<_i_kanji_domain.GetKanjiByLevel>(
     () => _i_kanji_domain.GetKanjiByLevel(
@@ -55,8 +53,7 @@ Future<void> registerCrossPackageDependencies(_i174.GetIt getIt) async {
   final store = await _i_progress_data.openStore();
   getIt.registerSingleton<_i_obx.Store>(store);
   getIt.registerLazySingleton<_i_obx.Box<_i_progress_data.KanjiProgressEntity>>(
-    () => getIt<_i_obx.Store>()
-        .box<_i_progress_data.KanjiProgressEntity>(),
+    () => getIt<_i_obx.Store>().box<_i_progress_data.KanjiProgressEntity>(),
   );
   getIt.registerLazySingleton<_i_progress_data.ProgressLocalDataSource>(
     () => _i_progress_data.ProgressLocalDataSource(
@@ -110,6 +107,10 @@ Future<void> registerCrossPackageDependencies(_i174.GetIt getIt) async {
   // ── Study UI ───────────────────────────────────────────────────────────────
   getIt.registerLazySingleton<_i_common.TtsService>(
     () => _i_common.FlutterTtsService(_i_flutter_tts.FlutterTts()),
+  );
+  getIt.registerLazySingleton<_i_common.SoundEffectService>(
+    () =>
+        _i_common.AudioPlayersSoundEffectService(_i_audioplayers.AudioPlayer()),
   );
   getIt.registerFactory<_i_study_ui.StudyCubit>(
     () => _i_study_ui.StudyCubit(

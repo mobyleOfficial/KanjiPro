@@ -45,6 +45,7 @@ dependencies:
   objectbox: ^4.0.0
   objectbox_flutter_libs: ^4.0.0
   json_annotation: ^4.9.0
+  audioplayers: ^6.0.0
   flutter_tts: ^4.2.0
   intl: any
 
