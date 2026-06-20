@@ -14,10 +14,24 @@ dependencies:
     sdk: flutter
   core:
     path: core
+  common:
+    path: ui/common
+  kanji:
+    path: features/kanji
+  kanji_domain:
+    path: features/kanji/domain
+  kanji_data:
+    path: features/kanji/data
+  progress:
+    path: features/progress
   progress_domain:
     path: features/progress/domain
   progress_data:
     path: features/progress/data
+  quiz:
+    path: features/quiz
+  quiz_domain:
+    path: features/quiz/domain
   flutter_bloc: ^9.0.0
   get_it: ^8.0.0
   injectable: ^2.5.0
