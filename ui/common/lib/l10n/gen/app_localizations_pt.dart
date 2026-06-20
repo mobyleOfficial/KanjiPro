@@ -15,6 +15,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get levelN5 => 'JLPT N5';
 
   @override
+  String get levelN4 => 'JLPT N4';
+
+  @override
+  String get levelN3 => 'JLPT N3';
+
+  @override
+  String get levelN2 => 'JLPT N2';
+
+  @override
+  String get levelN1 => 'JLPT N1';
+
+  @override
+  String levelProgress(int percent) {
+    return '$percent% dominado';
+  }
+
+  @override
+  String get chooseLevel => 'Escolha um nível';
+
+  @override
   String get study => 'Estudar';
 
   @override

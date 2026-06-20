@@ -7,9 +7,11 @@
 // ignore_for_file: type=lint
 // coverage:ignore-file
 
+// ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async';
 
 import 'package:get_it/get_it.dart' as _i174;
+import 'package:home_ui/home_ui.dart' as _i_home_ui;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:kanji_data/kanji_data.dart' as _i_kanji_data;
 import 'package:kanji_domain/kanji_domain.dart' as _i_kanji_domain;
@@ -101,6 +103,14 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i_quiz_domain.GradeAnswer>(
       () => _i_quiz_domain.GradeAnswer(),
+    );
+
+    // ── Home UI ──────────────────────────────────────────────────────────────
+    gh.factory<_i_home_ui.HomeCubit>(
+      () => _i_home_ui.HomeCubit(
+        getAllLevels: get<_i_kanji_domain.GetAllLevels>(),
+        getLevelProgress: get<_i_progress_domain.GetLevelProgress>(),
+      ),
     );
 
     return this;

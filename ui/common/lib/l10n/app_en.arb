@@ -4,6 +4,24 @@
   "@appTitle": {},
   "levelN5": "JLPT N5",
   "@levelN5": {},
+  "levelN4": "JLPT N4",
+  "@levelN4": {},
+  "levelN3": "JLPT N3",
+  "@levelN3": {},
+  "levelN2": "JLPT N2",
+  "@levelN2": {},
+  "levelN1": "JLPT N1",
+  "@levelN1": {},
+  "levelProgress": "{percent}% mastered",
+  "@levelProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseLevel": "Choose a level",
+  "@chooseLevel": {},
   "study": "Study",
   "@study": {},
   "quiz": "Quiz",

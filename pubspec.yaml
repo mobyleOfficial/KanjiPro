@@ -32,6 +32,8 @@ dependencies:
     path: features/quiz
   quiz_domain:
     path: features/quiz/domain
+  home_ui:
+    path: ui/home_ui
   flutter_bloc: ^9.0.0
   get_it: ^8.0.0
   injectable: ^2.5.0

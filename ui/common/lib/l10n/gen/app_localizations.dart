@@ -110,6 +110,42 @@ abstract class AppLocalizations {
   /// **'JLPT N5'**
   String get levelN5;
 
+  /// No description provided for @levelN4.
+  ///
+  /// In en, this message translates to:
+  /// **'JLPT N4'**
+  String get levelN4;
+
+  /// No description provided for @levelN3.
+  ///
+  /// In en, this message translates to:
+  /// **'JLPT N3'**
+  String get levelN3;
+
+  /// No description provided for @levelN2.
+  ///
+  /// In en, this message translates to:
+  /// **'JLPT N2'**
+  String get levelN2;
+
+  /// No description provided for @levelN1.
+  ///
+  /// In en, this message translates to:
+  /// **'JLPT N1'**
+  String get levelN1;
+
+  /// No description provided for @levelProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% mastered'**
+  String levelProgress(int percent);
+
+  /// No description provided for @chooseLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a level'**
+  String get chooseLevel;
+
   /// No description provided for @study.
   ///
   /// In en, this message translates to:
