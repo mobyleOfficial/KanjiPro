@@ -25,10 +25,14 @@ class HomeCubit extends Cubit<HomeState> {
       case FailureResult<List<JlptLevel>>(:final failure):
         emit(HomeError(failure.message));
       case Success<List<JlptLevel>>(:final data):
-        final levelProgressList = await Future.wait(
-          data.map((level) => _getLevelProgress(level)),
-        );
-        emit(HomeSuccess(levelProgressList));
+        try {
+          final levelProgressList = await Future.wait(
+            data.map((level) => _getLevelProgress(level)),
+          );
+          emit(HomeSuccess(levelProgressList));
+        } catch (error) {
+          emit(HomeError(error.toString()));
+        }
     }
   }
 }

@@ -112,5 +112,22 @@ void main() {
         isA<HomeError>().having((e) => e.message, 'message', 'load error'),
       ],
     );
+
+    blocTest<HomeCubit, HomeState>(
+      'emits [HomeLoading, HomeError] when GetLevelProgress throws',
+      setUp: () {
+        when(() => progressRepository.forLevel(JlptLevel.n5))
+            .thenThrow(Exception('db error'));
+      },
+      build: () => HomeCubit(
+        getAllLevels: getAllLevels,
+        getLevelProgress: getLevelProgress,
+      ),
+      act: (cubit) => cubit.load(),
+      expect: () => [
+        isA<HomeLoading>(),
+        isA<HomeError>(),
+      ],
+    );
   });
 }
