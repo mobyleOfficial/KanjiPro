@@ -746,6 +746,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  quiz_ui:
+    dependency: "direct main"
+    description:
+      path: "ui/quiz_ui"
+      relative: true
+    source: path
+    version: "0.0.1"
   recase:
     dependency: transitive
     description:
