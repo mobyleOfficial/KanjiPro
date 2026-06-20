@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 """Generate assets/data/kanji.json from kanjiapi.dev (KANJIDIC2/JMdict, CC BY-SA 4.0)."""
-import json, pathlib, sys, time
+import json, pathlib, re, sys, time
 import requests
 
 API = "https://kanjiapi.dev/v1"
 LEVELS = {"jlpt-5": "n5", "jlpt-4": "n4", "jlpt-3": "n3", "jlpt-2": "n2", "jlpt-1": "n1"}
 OUT = pathlib.Path(__file__).resolve().parent.parent / "assets" / "data" / "kanji.json"
+
+# KANJIDIC sometimes lists an archaic power-of-ten unit (e.g. "10**16" for 京)
+# as the FIRST meaning, which makes it the quiz's correct answer. Push such bare
+# power-of-ten notations to the end so the everyday word meaning stays primary.
+_POWER_OF_TEN = re.compile(r"^\s*10\s*\*\*\s*\d+\s*$|^\s*10\s*\^\s*\d+\s*$")
+
+
+def order_meanings(meanings):
+    nonpow = [m for m in meanings if not _POWER_OF_TEN.match(m)]
+    pows = [m for m in meanings if _POWER_OF_TEN.match(m)]
+    return (nonpow + pows) if nonpow else meanings
 
 
 def fetch(path):
@@ -64,7 +75,7 @@ def main():
                 "jlpt": level,
                 "on_readings": d.get("on_readings", []),
                 "kun_readings": d.get("kun_readings", []),
-                "meanings": d.get("meanings", []),
+                "meanings": order_meanings(d.get("meanings", [])),
                 "stroke_count": d.get("stroke_count", 0),
                 "examples": examples,
             })

@@ -2917,8 +2917,8 @@
 "みやこ"
 ],
 "meanings": [
-"10**16",
-"capital"
+"capital",
+"10**16"
 ],
 "stroke_count": 8,
 "examples": [
@@ -5881,10 +5881,10 @@
 "まさ.に"
 ],
 "meanings": [
-"10**40",
 "correct",
 "justice",
-"righteous"
+"righteous",
+"10**40"
 ],
 "stroke_count": 5,
 "examples": [
@@ -22625,8 +22625,8 @@
 ],
 "kun_readings": [],
 "meanings": [
-"10**8",
-"hundred million"
+"hundred million",
+"10**8"
 ],
 "stroke_count": 15,
 "examples": [
@@ -22658,12 +22658,12 @@
 "きざ.す"
 ],
 "meanings": [
-"10**12",
 "omen",
 "portent",
 "sign",
 "symptoms",
-"trillion"
+"trillion",
+"10**12"
 ],
 "stroke_count": 6,
 "examples": [
@@ -27387,7 +27387,6 @@
 "きわ.める"
 ],
 "meanings": [
-"10**48",
 "conclusion",
 "electric poles",
 "end",
@@ -27397,7 +27396,8 @@
 "most",
 "poles",
 "settlement",
-"very"
+"very",
+"10**48"
 ],
 "stroke_count": 12,
 "examples": [
@@ -56153,11 +56153,11 @@
 "みぞ"
 ],
 "meanings": [
-"10**32",
 "ditch",
 "drain",
 "gutter",
-"sewer"
+"sewer",
+"10**32"
 ],
 "stroke_count": 13,
 "examples": [
@@ -61305,9 +61305,9 @@
 "わら"
 ],
 "meanings": [
-"10**28",
 "good crops",
-"prosperity"
+"prosperity",
+"10**28"
 ],
 "stroke_count": 18,
 "examples": [
@@ -70420,14 +70420,14 @@
 "の.る"
 ],
 "meanings": [
-"10**44",
 "board",
 "get on",
 "place",
 "publish",
 "record",
 "ride",
-"spread"
+"spread",
+"10**44"
 ],
 "stroke_count": 13,
 "examples": [
