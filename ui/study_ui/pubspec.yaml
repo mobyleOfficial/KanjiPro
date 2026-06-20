@@ -1,0 +1,27 @@
+name: study_ui
+description: Study screen UI module for KanjiPro (flashcard browser with TTS).
+publish_to: 'none'
+version: 0.0.1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^9.0.0
+  get_it: ^8.0.0
+  common:
+    path: ../common
+  core:
+    path: ../../core
+  kanji:
+    path: ../../features/kanji
+  kanji_domain:
+    path: ../../features/kanji/domain
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.0

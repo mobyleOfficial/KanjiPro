@@ -13,18 +13,26 @@ import 'home_state.dart';
 ///
 /// Annotate with `@RoutePage()` in the shell app or wrap in a shell
 /// `HomeScreen` that delegates to this widget.
+///
+/// [onLevelTap] is an optional callback invoked when the user taps a level
+/// card. Provide it from the root app to trigger navigation without creating
+/// a circular dependency on generated route types.
 class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+  const HomeView({this.onLevelTap, super.key});
+
+  final void Function(JlptLevel level)? onLevelTap;
 
   @override
   Widget build(BuildContext context) => BlocProvider<HomeCubit>(
         create: (_) => GetIt.instance<HomeCubit>()..load(),
-        child: const _HomeContent(),
+        child: _HomeContent(onLevelTap: onLevelTap),
       );
 }
 
 class _HomeContent extends StatelessWidget {
-  const _HomeContent();
+  const _HomeContent({this.onLevelTap});
+
+  final void Function(JlptLevel level)? onLevelTap;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +47,7 @@ class _HomeContent extends StatelessWidget {
           HomeSuccess(:final levels) => _LevelList(
               levels: levels,
               localizations: localizations,
+              onLevelTap: onLevelTap,
             ),
         },
       ),
@@ -50,10 +59,12 @@ class _LevelList extends StatelessWidget {
   const _LevelList({
     required this.levels,
     required this.localizations,
+    this.onLevelTap,
   });
 
   final List<LevelProgress> levels;
   final AppLocalizations localizations;
+  final void Function(JlptLevel level)? onLevelTap;
 
   String _levelLabel(AppLocalizations l10n, JlptLevel level) => switch (level) {
         JlptLevel.n5 => l10n.levelN5,
@@ -80,9 +91,7 @@ class _LevelList extends StatelessWidget {
               label: label,
               percent: percent,
               progressValue: levelProgress.percent,
-              onTap: () {
-                // TODO(T11/T12): navigate to study/quiz when routes are available
-              },
+              onTap: () => onLevelTap?.call(levelProgress.level),
             ),
           );
         },

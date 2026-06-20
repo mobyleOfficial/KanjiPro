@@ -1,9 +1,8 @@
 import 'package:get_it/get_it.dart';
-import 'package:injectable/injectable.dart';
 
-import 'injection.config.dart';
+import 'injection_registry.dart';
 
 final GetIt getIt = GetIt.instance;
 
-@InjectableInit()
-Future<void> configureDependencies() => getIt.init();
+Future<void> configureDependencies() =>
+    registerCrossPackageDependencies(getIt);
