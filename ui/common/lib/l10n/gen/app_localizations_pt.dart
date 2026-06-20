@@ -61,4 +61,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get results => 'Resultados';
+
+  @override
+  String quizScore(int correct, int total) {
+    return '$correct / $total';
+  }
+
+  @override
+  String get retry => 'Tentar novamente';
+
+  @override
+  String get backToHome => 'Voltar ao início';
+
+  @override
+  String get next => 'Próximo';
+
+  @override
+  String get chooseMode => 'Escolha um modo';
 }

@@ -39,5 +39,21 @@
   "wrong": "Wrong",
   "@wrong": {},
   "results": "Results",
-  "@results": {}
+  "@results": {},
+  "quizScore": "{correct} / {total}",
+  "@quizScore": {
+    "description": "Quiz result score label showing correct answers over total",
+    "placeholders": {
+      "correct": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "retry": "Retry",
+  "@retry": { "description": "Button label to retry the quiz" },
+  "backToHome": "Back to Home",
+  "@backToHome": { "description": "Button label to return to home screen" },
+  "next": "Next",
+  "@next": { "description": "Button label to advance to the next quiz question" },
+  "chooseMode": "Choose a mode",
+  "@chooseMode": { "description": "Heading on quiz mode selection screen" }
 }

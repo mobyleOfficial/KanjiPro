@@ -61,4 +61,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get results => 'Results';
+
+  @override
+  String quizScore(int correct, int total) {
+    return '$correct / $total';
+  }
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get backToHome => 'Back to Home';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get chooseMode => 'Choose a mode';
 }

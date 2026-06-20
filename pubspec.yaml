@@ -36,6 +36,8 @@ dependencies:
     path: ui/home_ui
   study_ui:
     path: ui/study_ui
+  quiz_ui:
+    path: ui/quiz_ui
   flutter_bloc: ^9.0.0
   get_it: ^8.0.0
   injectable: ^2.5.0

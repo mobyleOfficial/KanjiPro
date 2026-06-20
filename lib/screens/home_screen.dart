@@ -13,5 +13,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) => HomeView(
         onLevelTap: (JlptLevel level) =>
             AutoRouter.of(context).push(StudyRoute(level: level)),
+        onQuizTap: (JlptLevel level) =>
+            AutoRouter.of(context).push(QuizModeSelectRoute(level: level)),
       );
 }

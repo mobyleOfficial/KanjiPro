@@ -39,5 +39,21 @@
   "wrong": "Errado",
   "@wrong": {},
   "results": "Resultados",
-  "@results": {}
+  "@results": {},
+  "quizScore": "{correct} / {total}",
+  "@quizScore": {
+    "description": "Pontuação do quiz mostrando respostas corretas sobre o total",
+    "placeholders": {
+      "correct": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "retry": "Tentar novamente",
+  "@retry": { "description": "Botão para tentar o quiz novamente" },
+  "backToHome": "Voltar ao início",
+  "@backToHome": { "description": "Botão para voltar à tela inicial" },
+  "next": "Próximo",
+  "@next": { "description": "Botão para avançar para a próxima questão do quiz" },
+  "chooseMode": "Escolha um modo",
+  "@chooseMode": { "description": "Título na tela de seleção de modo do quiz" }
 }

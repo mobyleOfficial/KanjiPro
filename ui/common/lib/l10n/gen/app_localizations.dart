@@ -199,6 +199,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Results'**
   String get results;
+
+  /// Quiz result score label showing correct answers over total
+  ///
+  /// In en, this message translates to:
+  /// **'{correct} / {total}'**
+  String quizScore(int correct, int total);
+
+  /// Button label to retry the quiz
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// Button label to return to home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get backToHome;
+
+  /// Button label to advance to the next quiz question
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// Heading on quiz mode selection screen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a mode'**
+  String get chooseMode;
 }
 
 class _AppLocalizationsDelegate

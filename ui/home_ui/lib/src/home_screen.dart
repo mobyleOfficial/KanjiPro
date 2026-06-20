@@ -14,25 +14,32 @@ import 'home_state.dart';
 /// Annotate with `@RoutePage()` in the shell app or wrap in a shell
 /// `HomeScreen` that delegates to this widget.
 ///
-/// [onLevelTap] is an optional callback invoked when the user taps a level
-/// card. Provide it from the root app to trigger navigation without creating
+/// [onLevelTap] — invoked when the user taps the Study action for a level.
+/// [onQuizTap]  — invoked when the user taps the Quiz action for a level.
+/// Provide these from the root app to trigger navigation without creating
 /// a circular dependency on generated route types.
 class HomeView extends StatelessWidget {
-  const HomeView({this.onLevelTap, super.key});
+  const HomeView({
+    this.onLevelTap,
+    this.onQuizTap,
+    super.key,
+  });
 
   final void Function(JlptLevel level)? onLevelTap;
+  final void Function(JlptLevel level)? onQuizTap;
 
   @override
   Widget build(BuildContext context) => BlocProvider<HomeCubit>(
         create: (_) => GetIt.instance<HomeCubit>()..load(),
-        child: _HomeContent(onLevelTap: onLevelTap),
+        child: _HomeContent(onLevelTap: onLevelTap, onQuizTap: onQuizTap),
       );
 }
 
 class _HomeContent extends StatelessWidget {
-  const _HomeContent({this.onLevelTap});
+  const _HomeContent({this.onLevelTap, this.onQuizTap});
 
   final void Function(JlptLevel level)? onLevelTap;
+  final void Function(JlptLevel level)? onQuizTap;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +55,7 @@ class _HomeContent extends StatelessWidget {
               levels: levels,
               localizations: localizations,
               onLevelTap: onLevelTap,
+              onQuizTap: onQuizTap,
             ),
         },
       ),
@@ -60,11 +68,13 @@ class _LevelList extends StatelessWidget {
     required this.levels,
     required this.localizations,
     this.onLevelTap,
+    this.onQuizTap,
   });
 
   final List<LevelProgress> levels;
   final AppLocalizations localizations;
   final void Function(JlptLevel level)? onLevelTap;
+  final void Function(JlptLevel level)? onQuizTap;
 
   String _levelLabel(AppLocalizations l10n, JlptLevel level) => switch (level) {
         JlptLevel.n5 => l10n.levelN5,
@@ -81,18 +91,14 @@ class _LevelList extends StatelessWidget {
           final levelProgress = levels[index];
           final label = _levelLabel(localizations, levelProgress.level);
           final percent = (levelProgress.percent * 100).round();
-          final semanticLabel =
-              '$label — ${localizations.levelProgress(percent)}';
 
-          return Semantics(
-            label: semanticLabel,
-            button: true,
-            child: _LevelCard(
-              label: label,
-              percent: percent,
-              progressValue: levelProgress.percent,
-              onTap: () => onLevelTap?.call(levelProgress.level),
-            ),
+          return _LevelCard(
+            label: label,
+            percent: percent,
+            progressValue: levelProgress.percent,
+            localizations: localizations,
+            onStudyTap: () => onLevelTap?.call(levelProgress.level),
+            onQuizTap: () => onQuizTap?.call(levelProgress.level),
           );
         },
       );
@@ -103,13 +109,17 @@ class _LevelCard extends StatelessWidget {
     required this.label,
     required this.percent,
     required this.progressValue,
-    required this.onTap,
+    required this.localizations,
+    required this.onStudyTap,
+    required this.onQuizTap,
   });
 
   final String label;
   final int percent;
   final double progressValue;
-  final VoidCallback onTap;
+  final AppLocalizations localizations;
+  final VoidCallback onStudyTap;
+  final VoidCallback onQuizTap;
 
   @override
   Widget build(BuildContext context) {
@@ -117,42 +127,76 @@ class _LevelCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
-                child: Row(
-                  children: [
-                    Text(
-                      label,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Level title + mastery percentage
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 32),
+              child: Row(
+                children: [
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                        ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '$percent%',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: progressValue,
+              color: colorScheme.primary,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+            ),
+            const SizedBox(height: 12),
+            // Action row: Study + Quiz
+            Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    label: '${localizations.study} $label',
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: onStudyTap,
+                        child: Text(localizations.study),
+                      ),
                     ),
-                    const Spacer(),
-                    Text(
-                      '$percent%',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: progressValue,
-                color: colorScheme.primary,
-                backgroundColor: colorScheme.surfaceContainerHighest,
-              ),
-            ],
-          ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    label: '${localizations.quiz} $label',
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                        ),
+                        onPressed: onQuizTap,
+                        child: Text(localizations.quiz),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
