@@ -1,6 +1,6 @@
 import 'package:common/common.dart';
 import 'package:flutter/material.dart';
-import 'package:kanji_domain/kanji_domain.dart';
+import 'package:kanji_domain/kanji_domain.dart' show JlptLevel;
 import 'package:quiz_domain/quiz_domain.dart';
 
 /// View for choosing a quiz mode (On'yomi / Kun'yomi / Meaning).
@@ -17,24 +17,14 @@ class QuizModeSelectView extends StatelessWidget {
   final JlptLevel level;
   final void Function(JlptLevel level, QuizMode mode) onModeSelected;
 
-  String _levelLabel(AppLocalizations l10n, JlptLevel jlptLevel) =>
-      switch (jlptLevel) {
-        JlptLevel.n5 => l10n.levelN5,
-        JlptLevel.n4 => l10n.levelN4,
-        JlptLevel.n3 => l10n.levelN3,
-        JlptLevel.n2 => l10n.levelN2,
-        JlptLevel.n1 => l10n.levelN1,
-      };
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final levelLabel = _levelLabel(l10n, level);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${l10n.quiz} — $levelLabel'),
+        title: Text(l10n.chooseMode),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),

@@ -177,6 +177,7 @@ class QuizCubit extends Cubit<QuizState> {
         question: question,
         answered: true,
         lastCorrect: isCorrect,
+        selectedIndex: selectedIndex,
         answeredCount: _total,
         sessionLength: _sessionLength,
       ),

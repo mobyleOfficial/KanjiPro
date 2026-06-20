@@ -217,6 +217,32 @@ void main() {
     ],
   );
 
+  // ── selectedIndex is set after answering ────────────────────────────────
+
+  blocTest<QuizCubit, QuizState>(
+    'answer sets selectedIndex to the tapped option index',
+    build: () {
+      final question = _question(levelKanjiList[0], correctIndex: 0);
+      when(() => mockGenerateQuiz(any())).thenReturn(question);
+      when(() => mockGradeAnswer(any())).thenReturn(false); // wrong
+      return makeCubit();
+    },
+    act: (cubit) async {
+      await cubit.start(JlptLevel.n5, QuizMode.meaning);
+      await cubit.answer(2); // tap option 2 (wrong)
+    },
+    expect: () => [
+      isA<QuizLoading>(),
+      isA<QuizQuestionState>()
+          .having((s) => s.answered, 'answered', false)
+          .having((s) => s.selectedIndex, 'selectedIndex', isNull),
+      isA<QuizQuestionState>()
+          .having((s) => s.answered, 'answered', true)
+          .having((s) => s.selectedIndex, 'selectedIndex', 2)
+          .having((s) => s.lastCorrect, 'lastCorrect', false),
+    ],
+  );
+
   // ── QuizFinished carries correct count ───────────────────────────────────
 
   blocTest<QuizCubit, QuizState>(

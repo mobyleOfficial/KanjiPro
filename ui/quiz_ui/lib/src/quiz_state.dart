@@ -13,6 +13,7 @@ class QuizQuestionState extends QuizState {
     required this.question,
     required this.answered,
     this.lastCorrect,
+    this.selectedIndex,
     required this.answeredCount,
     required this.sessionLength,
   });
@@ -20,6 +21,10 @@ class QuizQuestionState extends QuizState {
   final QuizQuestion question;
   final bool answered;
   final bool? lastCorrect;
+
+  /// The option index the user tapped, or null if not yet answered.
+  final int? selectedIndex;
+
   final int answeredCount;
   final int sessionLength;
 }

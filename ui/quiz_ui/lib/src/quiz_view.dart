@@ -6,7 +6,6 @@ import 'package:kanji_domain/kanji_domain.dart';
 import 'package:quiz_domain/quiz_domain.dart';
 
 import 'quiz_cubit.dart';
-import 'quiz_result_view.dart';
 import 'quiz_state.dart';
 
 /// Root widget for the quiz screen. Provides [QuizCubit] from GetIt and
@@ -54,12 +53,10 @@ class _QuizContent extends StatelessWidget {
         builder: (context, state) => switch (state) {
           QuizLoading() => const Center(child: CircularProgressIndicator()),
           QuizError(:final message) => Center(child: Text(message)),
-          QuizFinished(:final total, :final correct) => QuizResultView(
-              total: total,
-              correct: correct,
-              onRetry: null,
-              onHome: null,
-            ),
+          // Navigation is handled by the BlocConsumer listener above.
+          // Render a spinner while the listener triggers the route transition
+          // so a null-callback QuizResultView is never shown.
+          QuizFinished() => const Center(child: CircularProgressIndicator()),
           QuizQuestionState(:final question, :final answered, :final lastCorrect, :final answeredCount, :final sessionLength) => _QuizQuestionWidget(
               state: QuizQuestionState(
                 question: question,
@@ -256,13 +253,15 @@ class _OptionButton extends StatelessWidget {
   Color _backgroundColor() {
     if (!state.answered) return colorScheme.surfaceContainerHighest;
     if (index == state.question.correctIndex) return colorScheme.tertiaryContainer;
-    return colorScheme.errorContainer;
+    if (index == state.selectedIndex) return colorScheme.errorContainer;
+    return colorScheme.surfaceContainerHighest;
   }
 
   Color _foregroundColor() {
     if (!state.answered) return colorScheme.onSurface;
     if (index == state.question.correctIndex) return colorScheme.onTertiaryContainer;
-    return colorScheme.onErrorContainer;
+    if (index == state.selectedIndex) return colorScheme.onErrorContainer;
+    return colorScheme.onSurface;
   }
 
   @override
@@ -271,7 +270,11 @@ class _OptionButton extends StatelessWidget {
     final foregroundColor = _foregroundColor();
     final isAnswered = state.answered;
     final semanticHint = isAnswered
-        ? (index == state.question.correctIndex ? l10n.correct : l10n.wrong)
+        ? (index == state.question.correctIndex
+            ? l10n.correct
+            : index == state.selectedIndex
+                ? l10n.wrong
+                : label)
         : label;
 
     return Semantics(
