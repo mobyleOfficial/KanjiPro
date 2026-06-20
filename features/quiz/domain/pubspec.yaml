@@ -1,0 +1,19 @@
+name: quiz_domain
+description: Domain layer for the quiz feature (models and use cases).
+publish_to: 'none'
+version: 0.0.1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  core:
+    path: ../../../core
+  kanji_domain:
+    path: ../../kanji/domain
+  progress_domain:
+    path: ../../progress/domain
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

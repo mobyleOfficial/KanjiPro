@@ -1,0 +1,11 @@
+name: quiz
+description: Feature barrel re-exporting quiz_domain.
+publish_to: 'none'
+version: 0.0.1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  quiz_domain:
+    path: ./domain
