@@ -15,8 +15,6 @@ dependencies:
     path: ../common
   core:
     path: ../../core
-  kanji:
-    path: ../../features/kanji
   kanji_domain:
     path: ../../features/kanji/domain
 

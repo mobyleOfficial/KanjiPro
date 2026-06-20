@@ -55,5 +55,7 @@
   "next": "Next",
   "@next": { "description": "Button label to advance to the next quiz question" },
   "chooseMode": "Choose a mode",
-  "@chooseMode": { "description": "Heading on quiz mode selection screen" }
+  "@chooseMode": { "description": "Heading on quiz mode selection screen" },
+  "speakAloud": "Speak aloud",
+  "@speakAloud": {}
 }

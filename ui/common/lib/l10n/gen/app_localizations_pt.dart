@@ -78,4 +78,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get chooseMode => 'Escolha um modo';
+
+  @override
+  String get speakAloud => 'Falar em voz alta';
 }

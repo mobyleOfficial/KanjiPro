@@ -78,4 +78,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chooseMode => 'Choose a mode';
+
+  @override
+  String get speakAloud => 'Speak aloud';
 }

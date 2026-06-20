@@ -280,29 +280,26 @@ class _SpeakButtonState extends State<_SpeakButton> {
     final reading = _firstAvailableReading();
 
     return Center(
-      child: Tooltip(
-        message: isAvailable ? '' : widget.localizations.ttsUnavailable,
-        child: SizedBox(
-          width: 56,
-          height: 56,
-          child: Semantics(
-            label: isAvailable
-                ? 'Speak aloud'
-                : widget.localizations.ttsUnavailable,
-            button: true,
-            child: IconButton(
-              onPressed: (isAvailable && reading != null)
-                  ? () => context.read<StudyCubit>().speak(reading)
-                  : null,
-              icon: Icon(
-                Icons.volume_up_outlined,
-                color: isAvailable
-                    ? widget.colorScheme.primary
-                    : widget.colorScheme.onSurfaceVariant,
-                semanticLabel: null,
-              ),
-              tooltip: isAvailable ? null : widget.localizations.ttsUnavailable,
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: Semantics(
+          label: isAvailable
+              ? widget.localizations.speakAloud
+              : widget.localizations.ttsUnavailable,
+          button: true,
+          child: IconButton(
+            onPressed: (isAvailable && reading != null)
+                ? () => context.read<StudyCubit>().speak(reading)
+                : null,
+            icon: Icon(
+              Icons.volume_up_outlined,
+              color: isAvailable
+                  ? widget.colorScheme.primary
+                  : widget.colorScheme.onSurfaceVariant,
+              semanticLabel: null,
             ),
+            tooltip: isAvailable ? null : widget.localizations.ttsUnavailable,
           ),
         ),
       ),

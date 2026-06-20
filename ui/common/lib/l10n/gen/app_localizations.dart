@@ -229,6 +229,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a mode'**
   String get chooseMode;
+
+  /// No description provided for @speakAloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak aloud'**
+  String get speakAloud;
 }
 
 class _AppLocalizationsDelegate
