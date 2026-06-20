@@ -519,12 +519,14 @@ class _ExampleRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Word — tappable to speak when TTS is available
-        _ExampleWordChip(
-          word: example.word,
-          isAvailable: isAvailable,
-          colorScheme: colorScheme,
-          textTheme: textTheme,
-          localizations: localizations,
+        Flexible(
+          child: _ExampleWordChip(
+            word: example.word,
+            isAvailable: isAvailable,
+            colorScheme: colorScheme,
+            textTheme: textTheme,
+            localizations: localizations,
+          ),
         ),
         const SizedBox(width: 8),
         // Reading (kana) — secondary colour, plain text
@@ -572,6 +574,8 @@ class _ExampleWordChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final wordText = Text(
       word,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: textTheme.bodyLarge?.copyWith(
         color: isAvailable ? colorScheme.primary : colorScheme.onSurface,
         fontWeight: FontWeight.bold,
