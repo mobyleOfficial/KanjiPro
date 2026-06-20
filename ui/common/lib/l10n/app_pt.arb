@@ -57,5 +57,7 @@
   "chooseMode": "Escolha um modo",
   "@chooseMode": { "description": "Título na tela de seleção de modo do quiz" },
   "speakAloud": "Falar em voz alta",
-  "@speakAloud": {}
+  "@speakAloud": {},
+  "examples": "Exemplos",
+  "@examples": { "description": "Título da seção de exemplos de uso no cartão de estudo" }
 }

@@ -133,7 +133,7 @@ class _KanjiCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Card(
         elevation: 4,
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -180,6 +180,17 @@ class _KanjiCard extends StatelessWidget {
                 colorScheme: colorScheme,
                 textTheme: textTheme,
               ),
+
+              // Examples section — only shown when examples are available
+              if (kanji.examples.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                _ExamplesSection(
+                  examples: kanji.examples,
+                  colorScheme: colorScheme,
+                  textTheme: textTheme,
+                  localizations: localizations,
+                ),
+              ],
             ],
           ),
         ),
@@ -402,6 +413,194 @@ class _ReadingChip extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: textWidget,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Section that lists [KanjiExample]s with a labelled header. Only rendered
+/// when [examples] is non-empty (callers must guard on this condition).
+///
+/// Each example row shows:
+/// - The [KanjiExample.word] (Japanese, tappable-to-speak when TTS is on)
+/// - The [KanjiExample.reading] (kana, secondary colour)
+/// - The [KanjiExample.meaning] (English, tertiary colour)
+///
+/// TTS availability is checked once on mount using the same pattern as
+/// [_TappableReadingRow] so behaviour is consistent across the card.
+class _ExamplesSection extends StatefulWidget {
+  const _ExamplesSection({
+    required this.examples,
+    required this.colorScheme,
+    required this.textTheme,
+    required this.localizations,
+  });
+
+  final List<KanjiExample> examples;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final AppLocalizations localizations;
+
+  @override
+  State<_ExamplesSection> createState() => _ExamplesSectionState();
+}
+
+class _ExamplesSectionState extends State<_ExamplesSection> {
+  bool? _ttsAvailable;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkTtsAvailability();
+  }
+
+  Future<void> _checkTtsAvailability() async {
+    final available = await context.read<StudyCubit>().ttsAvailable();
+    if (mounted) {
+      setState(() => _ttsAvailable = available);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isAvailable = _ttsAvailable ?? false;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Section header
+        Text(
+          widget.localizations.examples,
+          style: widget.textTheme.labelMedium?.copyWith(
+            color: widget.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
+        // One row per example
+        ...widget.examples.map(
+          (example) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _ExampleRow(
+              example: example,
+              isAvailable: isAvailable,
+              colorScheme: widget.colorScheme,
+              textTheme: widget.textTheme,
+              localizations: widget.localizations,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A single example row: word (tappable) | reading | meaning.
+class _ExampleRow extends StatelessWidget {
+  const _ExampleRow({
+    required this.example,
+    required this.isAvailable,
+    required this.colorScheme,
+    required this.textTheme,
+    required this.localizations,
+  });
+
+  final KanjiExample example;
+  final bool isAvailable;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final AppLocalizations localizations;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Word — tappable to speak when TTS is available
+        _ExampleWordChip(
+          word: example.word,
+          isAvailable: isAvailable,
+          colorScheme: colorScheme,
+          textTheme: textTheme,
+          localizations: localizations,
+        ),
+        const SizedBox(width: 8),
+        // Reading (kana) — secondary colour, plain text
+        Flexible(
+          child: Text(
+            example.reading,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Meaning — tertiary colour, plain text
+        Flexible(
+          child: Text(
+            example.meaning,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.outline,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A single example word, rendered as tappable underlined text when TTS is
+/// available or as plain text otherwise. Enforces a ≥48 dp touch target.
+class _ExampleWordChip extends StatelessWidget {
+  const _ExampleWordChip({
+    required this.word,
+    required this.isAvailable,
+    required this.colorScheme,
+    required this.textTheme,
+    required this.localizations,
+  });
+
+  final String word;
+  final bool isAvailable;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final AppLocalizations localizations;
+
+  @override
+  Widget build(BuildContext context) {
+    final wordText = Text(
+      word,
+      style: textTheme.bodyLarge?.copyWith(
+        color: isAvailable ? colorScheme.primary : colorScheme.onSurface,
+        fontWeight: FontWeight.bold,
+        decoration: isAvailable ? TextDecoration.underline : TextDecoration.none,
+        decorationColor: isAvailable ? colorScheme.primary : null,
+      ),
+    );
+
+    if (!isAvailable) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: wordText,
+      );
+    }
+
+    return Semantics(
+      label: '${localizations.speakAloud}: $word',
+      button: true,
+      child: InkWell(
+        onTap: () => context.read<StudyCubit>().speak(word),
+        borderRadius: BorderRadius.circular(4),
+        child: ConstrainedBox(
+          // Enforce ≥48 dp touch target height (accessibility rule).
+          constraints: const BoxConstraints(minHeight: _kMinTouchTarget),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: wordText,
             ),
           ),
         ),

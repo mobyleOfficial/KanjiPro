@@ -235,6 +235,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Speak aloud'**
   String get speakAloud;
+
+  /// Section header for usage examples on the study flashcard
+  ///
+  /// In en, this message translates to:
+  /// **'Examples'**
+  String get examples;
 }
 
 class _AppLocalizationsDelegate

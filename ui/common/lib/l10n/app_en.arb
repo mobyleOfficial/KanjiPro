@@ -57,5 +57,7 @@
   "chooseMode": "Choose a mode",
   "@chooseMode": { "description": "Heading on quiz mode selection screen" },
   "speakAloud": "Speak aloud",
-  "@speakAloud": {}
+  "@speakAloud": {},
+  "examples": "Examples",
+  "@examples": { "description": "Section header for usage examples on the study flashcard" }
 }

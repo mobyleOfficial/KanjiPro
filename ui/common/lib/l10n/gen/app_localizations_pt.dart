@@ -81,4 +81,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get speakAloud => 'Falar em voz alta';
+
+  @override
+  String get examples => 'Exemplos';
 }
