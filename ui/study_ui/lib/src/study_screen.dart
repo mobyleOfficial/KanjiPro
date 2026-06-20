@@ -7,6 +7,9 @@ import 'package:kanji_domain/kanji_domain.dart';
 import 'study_cubit.dart';
 import 'study_state.dart';
 
+// Minimum touch target size per accessibility rules (48 dp).
+const double _kMinTouchTarget = 48.0;
+
 /// Root widget for the study feature. Provides [StudyCubit] from GetIt and
 /// renders the flashcard browser for the given [level].
 class StudyView extends StatelessWidget {
@@ -150,38 +153,32 @@ class _KanjiCard extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // On readings row
-              _ReadingRow(
+              // On readings — each tappable to hear pronunciation
+              _TappableReadingRow(
                 label: localizations.modeOnReading,
                 values: kanji.onReadings,
                 colorScheme: colorScheme,
                 textTheme: textTheme,
+                localizations: localizations,
               ),
               const SizedBox(height: 12),
 
-              // Kun readings row
-              _ReadingRow(
+              // Kun readings — each tappable to hear pronunciation
+              _TappableReadingRow(
                 label: localizations.modeKunReading,
                 values: kanji.kunReadings,
                 colorScheme: colorScheme,
                 textTheme: textTheme,
+                localizations: localizations,
               ),
               const SizedBox(height: 12),
 
-              // Meaning row
+              // Meaning row — English, plain text (not tappable)
               _ReadingRow(
                 label: localizations.modeMeaning,
                 values: kanji.meanings,
                 colorScheme: colorScheme,
                 textTheme: textTheme,
-              ),
-              const SizedBox(height: 24),
-
-              // TTS speak button
-              _SpeakButton(
-                kanji: kanji,
-                localizations: localizations,
-                colorScheme: colorScheme,
               ),
             ],
           ),
@@ -191,6 +188,8 @@ class _KanjiCard extends StatelessWidget {
   }
 }
 
+/// Plain (non-tappable) row for values that should not be spoken aloud via
+/// TTS (e.g. English meanings).
 class _ReadingRow extends StatelessWidget {
   const _ReadingRow({
     required this.label,
@@ -232,22 +231,36 @@ class _ReadingRow extends StatelessWidget {
   }
 }
 
-class _SpeakButton extends StatefulWidget {
-  const _SpeakButton({
-    required this.kanji,
-    required this.localizations,
+/// Row that renders Japanese readings as individual tappable items.
+///
+/// Each reading is rendered as underlined text wrapped in an [InkWell] so the
+/// user can tap a specific reading to hear it via TTS. When TTS is unavailable,
+/// the underlines are hidden and a small guidance note is shown instead.
+///
+/// TTS availability is checked once on mount (same pattern as the removed
+/// `_SpeakButton`). While the async check is in-flight (`_ttsAvailable == null`)
+/// the readings render as plain (non-tappable) text to avoid a flash of
+/// incorrectly-enabled controls.
+class _TappableReadingRow extends StatefulWidget {
+  const _TappableReadingRow({
+    required this.label,
+    required this.values,
     required this.colorScheme,
+    required this.textTheme,
+    required this.localizations,
   });
 
-  final Kanji kanji;
-  final AppLocalizations localizations;
+  final String label;
+  final List<String> values;
   final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final AppLocalizations localizations;
 
   @override
-  State<_SpeakButton> createState() => _SpeakButtonState();
+  State<_TappableReadingRow> createState() => _TappableReadingRowState();
 }
 
-class _SpeakButtonState extends State<_SpeakButton> {
+class _TappableReadingRowState extends State<_TappableReadingRow> {
   bool? _ttsAvailable;
 
   @override
@@ -257,49 +270,139 @@ class _SpeakButtonState extends State<_SpeakButton> {
   }
 
   Future<void> _checkTtsAvailability() async {
-    final cubit = context.read<StudyCubit>();
-    final available = await cubit.ttsAvailable();
+    final available = await context.read<StudyCubit>().ttsAvailable();
     if (mounted) {
       setState(() => _ttsAvailable = available);
     }
   }
 
-  String? _firstAvailableReading() {
-    if (widget.kanji.onReadings.isNotEmpty) {
-      return widget.kanji.onReadings.first;
-    }
-    if (widget.kanji.kunReadings.isNotEmpty) {
-      return widget.kanji.kunReadings.first;
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isAvailable = _ttsAvailable ?? false;
-    final reading = _firstAvailableReading();
 
-    return Center(
-      child: SizedBox(
-        width: 56,
-        height: 56,
-        child: Semantics(
-          label: isAvailable
-              ? widget.localizations.speakAloud
-              : widget.localizations.ttsUnavailable,
-          button: true,
-          child: IconButton(
-            onPressed: (isAvailable && reading != null)
-                ? () => context.read<StudyCubit>().speak(reading)
-                : null,
-            icon: Icon(
-              Icons.volume_up_outlined,
-              color: isAvailable
-                  ? widget.colorScheme.primary
-                  : widget.colorScheme.onSurfaceVariant,
-              semanticLabel: null,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            widget.label,
+            style: widget.textTheme.labelMedium?.copyWith(
+              color: widget.colorScheme.onSurfaceVariant,
             ),
-            tooltip: isAvailable ? null : widget.localizations.ttsUnavailable,
+          ),
+        ),
+        Expanded(
+          child: widget.values.isEmpty
+              ? Text(
+                  '—',
+                  style: widget.textTheme.bodyLarge?.copyWith(
+                    color: widget.colorScheme.onSurface,
+                  ),
+                )
+              : _ReadingChips(
+                  readings: widget.values,
+                  isAvailable: isAvailable,
+                  colorScheme: widget.colorScheme,
+                  textTheme: widget.textTheme,
+                  localizations: widget.localizations,
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Lays out individual reading chips in a [Wrap] so they reflow naturally on
+/// narrow screens. Each chip is either tappable (TTS available) or plain text
+/// (TTS unavailable).
+class _ReadingChips extends StatelessWidget {
+  const _ReadingChips({
+    required this.readings,
+    required this.isAvailable,
+    required this.colorScheme,
+    required this.textTheme,
+    required this.localizations,
+  });
+
+  final List<String> readings;
+  final bool isAvailable;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final AppLocalizations localizations;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 0,
+      children: readings
+          .map(
+            (reading) => _ReadingChip(
+              reading: reading,
+              isAvailable: isAvailable,
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              localizations: localizations,
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+/// A single tappable reading item with an underline affordance and a ≥48 dp
+/// touch target.
+class _ReadingChip extends StatelessWidget {
+  const _ReadingChip({
+    required this.reading,
+    required this.isAvailable,
+    required this.colorScheme,
+    required this.textTheme,
+    required this.localizations,
+  });
+
+  final String reading;
+  final bool isAvailable;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final AppLocalizations localizations;
+
+  @override
+  Widget build(BuildContext context) {
+    final textWidget = Text(
+      reading,
+      style: textTheme.bodyLarge?.copyWith(
+        color: isAvailable ? colorScheme.primary : colorScheme.onSurface,
+        decoration: isAvailable ? TextDecoration.underline : TextDecoration.none,
+        decorationColor:
+            isAvailable ? colorScheme.primary : null,
+      ),
+    );
+
+    if (!isAvailable) {
+      // TTS unavailable: render as plain text, no tap affordance.
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: textWidget,
+      );
+    }
+
+    return Semantics(
+      label: '${localizations.speakAloud}: $reading',
+      button: true,
+      child: InkWell(
+        onTap: () => context.read<StudyCubit>().speak(reading),
+        borderRadius: BorderRadius.circular(4),
+        child: ConstrainedBox(
+          // Enforce ≥48 dp touch target height (accessibility rule).
+          constraints: const BoxConstraints(minHeight: _kMinTouchTarget),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: textWidget,
+            ),
           ),
         ),
       ),
