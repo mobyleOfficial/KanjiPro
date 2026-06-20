@@ -4,6 +4,30 @@ import 'package:kanji_domain/kanji_domain.dart';
 part 'kanji_model.g.dart';
 
 @JsonSerializable()
+class KanjiExampleModel {
+  const KanjiExampleModel({
+    required this.word,
+    required this.reading,
+    required this.meaning,
+  });
+
+  final String word;
+  final String reading;
+  final String meaning;
+
+  factory KanjiExampleModel.fromJson(Map<String, dynamic> json) =>
+      _$KanjiExampleModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$KanjiExampleModelToJson(this);
+
+  KanjiExample toDomain() => KanjiExample(
+    word: word,
+    reading: reading,
+    meaning: meaning,
+  );
+}
+
+@JsonSerializable()
 class KanjiModel {
   KanjiModel({
     required this.literal,
@@ -12,6 +36,7 @@ class KanjiModel {
     required this.kunReadings,
     required this.meanings,
     required this.strokeCount,
+    this.examples = const [],
   });
 
   final String literal;
@@ -23,6 +48,7 @@ class KanjiModel {
   final List<String> meanings;
   @JsonKey(name: 'stroke_count')
   final int strokeCount;
+  final List<KanjiExampleModel> examples;
 
   factory KanjiModel.fromJson(Map<String, dynamic> json) =>
       _$KanjiModelFromJson(json);
@@ -36,5 +62,6 @@ class KanjiModel {
     meanings: meanings,
     jlptLevel: JlptLevel.fromId(jlpt),
     strokeCount: strokeCount,
+    examples: examples.map((example) => example.toDomain()).toList(),
   );
 }

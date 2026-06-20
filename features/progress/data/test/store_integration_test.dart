@@ -10,7 +10,6 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:progress_data/progress_data.dart';
 
 void main() {

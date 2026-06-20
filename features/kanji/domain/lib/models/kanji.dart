@@ -1,4 +1,5 @@
 import 'jlpt_level.dart';
+import 'kanji_example.dart';
 
 class Kanji {
   const Kanji({
@@ -8,6 +9,7 @@ class Kanji {
     required this.meanings,
     required this.jlptLevel,
     required this.strokeCount,
+    this.examples = const [],
   });
 
   final String literal;
@@ -16,4 +18,5 @@ class Kanji {
   final List<String> meanings;
   final JlptLevel jlptLevel;
   final int strokeCount;
+  final List<KanjiExample> examples;
 }
