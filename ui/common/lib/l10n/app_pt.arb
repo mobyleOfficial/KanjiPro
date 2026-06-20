@@ -38,20 +38,6 @@
   "@correct": {},
   "wrong": "Errado",
   "@wrong": {},
-  "results": "Resultados",
-  "@results": {},
-  "quizScore": "{correct} / {total}",
-  "@quizScore": {
-    "description": "Pontuação do quiz mostrando respostas corretas sobre o total",
-    "placeholders": {
-      "correct": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
-  "retry": "Tentar novamente",
-  "@retry": { "description": "Botão para tentar o quiz novamente" },
-  "backToHome": "Voltar ao início",
-  "@backToHome": { "description": "Botão para voltar à tela inicial" },
   "next": "Próximo",
   "@next": { "description": "Botão para avançar para a próxima questão do quiz" },
   "chooseMode": "Escolha um modo",
@@ -59,5 +45,9 @@
   "speakAloud": "Falar em voz alta",
   "@speakAloud": {},
   "examples": "Exemplos",
-  "@examples": { "description": "Título da seção de exemplos de uso no cartão de estudo" }
+  "@examples": { "description": "Título da seção de exemplos de uso no cartão de estudo" },
+  "mastered": "Dominado!",
+  "@mastered": { "description": "Banner exibido quando um kanji atinge domínio total" },
+  "mastery": "Domínio",
+  "@mastery": { "description": "Rótulo para a linha de progresso de domínio por kanji" }
 }

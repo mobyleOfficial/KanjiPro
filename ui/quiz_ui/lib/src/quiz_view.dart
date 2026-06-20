@@ -10,33 +10,21 @@ import 'quiz_state.dart';
 
 /// Root widget for the quiz screen. Provides [QuizCubit] from GetIt and
 /// immediately starts a session for [level] and [mode].
-///
-/// [onFinished] is called with the final (total, correct) when the session
-/// ends — the root app can push ResultsRoute.
-/// [onBackToHome] is called when the user wants to exit without finishing.
 class QuizView extends StatelessWidget {
-  const QuizView({
-    required this.level,
-    required this.mode,
-    required this.onFinished,
-    super.key,
-  });
+  const QuizView({required this.level, required this.mode, super.key});
 
   final JlptLevel level;
   final QuizMode mode;
-  final void Function(int total, int correct) onFinished;
 
   @override
   Widget build(BuildContext context) => BlocProvider<QuizCubit>(
-        create: (_) => GetIt.instance<QuizCubit>()..start(level, mode),
-        child: _QuizContent(onFinished: onFinished),
-      );
+    create: (_) => GetIt.instance<QuizCubit>()..start(level, mode),
+    child: const _QuizContent(),
+  );
 }
 
 class _QuizContent extends StatelessWidget {
-  const _QuizContent({required this.onFinished});
-
-  final void Function(int total, int correct) onFinished;
+  const _QuizContent();
 
   @override
   Widget build(BuildContext context) {
@@ -44,29 +32,11 @@ class _QuizContent extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.quiz)),
-      body: BlocConsumer<QuizCubit, QuizState>(
-        listener: (context, state) {
-          if (state case QuizFinished(:final total, :final correct)) {
-            onFinished(total, correct);
-          }
-        },
+      body: BlocBuilder<QuizCubit, QuizState>(
         builder: (context, state) => switch (state) {
           QuizLoading() => const Center(child: CircularProgressIndicator()),
           QuizError(:final message) => Center(child: Text(message)),
-          // Navigation is handled by the BlocConsumer listener above.
-          // Render a spinner while the listener triggers the route transition
-          // so a null-callback QuizResultView is never shown.
-          QuizFinished() => const Center(child: CircularProgressIndicator()),
-          QuizQuestionState(:final question, :final answered, :final lastCorrect, :final answeredCount, :final sessionLength) => _QuizQuestionWidget(
-              state: QuizQuestionState(
-                question: question,
-                answered: answered,
-                lastCorrect: lastCorrect,
-                answeredCount: answeredCount,
-                sessionLength: sessionLength,
-              ),
-              l10n: l10n,
-            ),
+          QuizQuestionState() => _QuizQuestionWidget(state: state, l10n: l10n),
         },
       ),
     );
@@ -74,10 +44,7 @@ class _QuizContent extends StatelessWidget {
 }
 
 class _QuizQuestionWidget extends StatelessWidget {
-  const _QuizQuestionWidget({
-    required this.state,
-    required this.l10n,
-  });
+  const _QuizQuestionWidget({required this.state, required this.l10n});
 
   final QuizQuestionState state;
   final AppLocalizations l10n;
@@ -92,11 +59,12 @@ class _QuizQuestionWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Progress indicator
-          _ProgressBar(
-            answered: state.answeredCount,
-            total: state.sessionLength,
+          // Per-kanji mastery progress
+          _MasteryProgress(
+            hits: state.currentKanjiHits,
+            target: state.masteryTarget,
             colorScheme: colorScheme,
+            l10n: l10n,
           ),
           const SizedBox(height: 24),
 
@@ -107,9 +75,9 @@ class _QuizQuestionWidget extends StatelessWidget {
               child: Text(
                 question.kanji.literal,
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontSize: 96,
-                    ),
+                  color: colorScheme.onSurface,
+                  fontSize: 96,
+                ),
               ),
             ),
           ),
@@ -117,11 +85,14 @@ class _QuizQuestionWidget extends StatelessWidget {
 
           // Feedback banner (correct/wrong) — visible only after answering
           if (state.answered) ...[
-            _FeedbackBanner(
-              isCorrect: state.lastCorrect ?? false,
-              l10n: l10n,
-              colorScheme: colorScheme,
-            ),
+            if (state.justMastered)
+              _MasteredBanner(l10n: l10n, colorScheme: colorScheme)
+            else
+              _FeedbackBanner(
+                isCorrect: state.lastCorrect ?? false,
+                l10n: l10n,
+                colorScheme: colorScheme,
+              ),
             const SizedBox(height: 16),
           ],
 
@@ -161,35 +132,85 @@ class _QuizQuestionWidget extends StatelessWidget {
   }
 }
 
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({
-    required this.answered,
-    required this.total,
+class _MasteryProgress extends StatelessWidget {
+  const _MasteryProgress({
+    required this.hits,
+    required this.target,
     required this.colorScheme,
+    required this.l10n,
   });
 
-  final int answered;
-  final int total;
+  final int hits;
+  final int target;
+  final ColorScheme colorScheme;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final clampedHits = hits.clamp(0, target);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${l10n.mastery}: $clampedHits / $target',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 6),
+        Semantics(
+          label: '${l10n.mastery}: $clampedHits / $target',
+          child: Row(
+            children: List.generate(target, (index) {
+              final filled = index < clampedHits;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                  child: Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: filled
+                          ? colorScheme.primary
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MasteredBanner extends StatelessWidget {
+  const _MasteredBanner({required this.l10n, required this.colorScheme});
+
+  final AppLocalizations l10n;
   final ColorScheme colorScheme;
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$answered / $total',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 4),
-          LinearProgressIndicator(
-            value: total > 0 ? answered / total : 0,
-            color: colorScheme.primary,
-            backgroundColor: colorScheme.surfaceContainerHighest,
-          ),
-        ],
-      );
+  Widget build(BuildContext context) => Semantics(
+    label: l10n.mastered,
+    liveRegion: true,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        l10n.mastered,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: colorScheme.onPrimaryContainer,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+  );
 }
 
 class _FeedbackBanner extends StatelessWidget {
@@ -226,9 +247,9 @@ class _FeedbackBanner extends StatelessWidget {
           label,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: foregroundColor,
-                fontWeight: FontWeight.bold,
-              ),
+            color: foregroundColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
@@ -252,14 +273,18 @@ class _OptionButton extends StatelessWidget {
 
   Color _backgroundColor() {
     if (!state.answered) return colorScheme.surfaceContainerHighest;
-    if (index == state.question.correctIndex) return colorScheme.tertiaryContainer;
+    if (index == state.question.correctIndex) {
+      return colorScheme.tertiaryContainer;
+    }
     if (index == state.selectedIndex) return colorScheme.errorContainer;
     return colorScheme.surfaceContainerHighest;
   }
 
   Color _foregroundColor() {
     if (!state.answered) return colorScheme.onSurface;
-    if (index == state.question.correctIndex) return colorScheme.onTertiaryContainer;
+    if (index == state.question.correctIndex) {
+      return colorScheme.onTertiaryContainer;
+    }
     if (index == state.selectedIndex) return colorScheme.onErrorContainer;
     return colorScheme.onSurface;
   }
@@ -271,10 +296,10 @@ class _OptionButton extends StatelessWidget {
     final isAnswered = state.answered;
     final semanticHint = isAnswered
         ? (index == state.question.correctIndex
-            ? l10n.correct
-            : index == state.selectedIndex
-                ? l10n.wrong
-                : label)
+              ? l10n.correct
+              : index == state.selectedIndex
+              ? l10n.wrong
+              : label)
         : label;
 
     return Semantics(
@@ -292,10 +317,7 @@ class _OptionButton extends StatelessWidget {
           onPressed: isAnswered
               ? null
               : () => context.read<QuizCubit>().answer(index),
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 16),
-          ),
+          child: Text(label, style: const TextStyle(fontSize: 16)),
         ),
       ),
     );

@@ -60,20 +60,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wrong => 'Wrong';
 
   @override
-  String get results => 'Results';
-
-  @override
-  String quizScore(int correct, int total) {
-    return '$correct / $total';
-  }
-
-  @override
-  String get retry => 'Retry';
-
-  @override
-  String get backToHome => 'Back to Home';
-
-  @override
   String get next => 'Next';
 
   @override
@@ -84,4 +70,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get examples => 'Examples';
+
+  @override
+  String get mastered => 'Mastered!';
+
+  @override
+  String get mastery => 'Mastery';
 }

@@ -194,30 +194,6 @@ abstract class AppLocalizations {
   /// **'Wrong'**
   String get wrong;
 
-  /// No description provided for @results.
-  ///
-  /// In en, this message translates to:
-  /// **'Results'**
-  String get results;
-
-  /// Quiz result score label showing correct answers over total
-  ///
-  /// In en, this message translates to:
-  /// **'{correct} / {total}'**
-  String quizScore(int correct, int total);
-
-  /// Button label to retry the quiz
-  ///
-  /// In en, this message translates to:
-  /// **'Retry'**
-  String get retry;
-
-  /// Button label to return to home screen
-  ///
-  /// In en, this message translates to:
-  /// **'Back to Home'**
-  String get backToHome;
-
   /// Button label to advance to the next quiz question
   ///
   /// In en, this message translates to:
@@ -241,6 +217,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Examples'**
   String get examples;
+
+  /// Banner shown when a kanji reaches full mastery
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered!'**
+  String get mastered;
+
+  /// Label for the per-kanji mastery progress row
+  ///
+  /// In en, this message translates to:
+  /// **'Mastery'**
+  String get mastery;
 }
 
 class _AppLocalizationsDelegate

@@ -34,31 +34,31 @@ class FakeRecordParams extends Fake implements RecordParams {}
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 Kanji _kanji(String literal, {String meaning = ''}) => Kanji(
-      literal: literal,
-      onReadings: const [],
-      kunReadings: const [],
-      meanings: [if (meaning.isEmpty) literal else meaning],
-      jlptLevel: JlptLevel.n5,
-      strokeCount: 1,
-    );
+  literal: literal,
+  onReadings: const [],
+  kunReadings: const [],
+  meanings: [if (meaning.isEmpty) literal else meaning],
+  jlptLevel: JlptLevel.n5,
+  strokeCount: 1,
+);
 
-KanjiProgress _progress(String literal) => KanjiProgress(
-      literal: literal,
-      level: JlptLevel.n5,
-      status: ProgressStatus.learning,
-      hitCount: 0,
-      timesSeen: 0,
-      timesCorrect: 0,
-      timesWrong: 0,
-      lastSeenAt: null,
-    );
+KanjiProgress _progress(String literal, {int hitCount = 0}) => KanjiProgress(
+  literal: literal,
+  level: JlptLevel.n5,
+  status: ProgressStatus.learning,
+  hitCount: hitCount,
+  timesSeen: 0,
+  timesCorrect: 0,
+  timesWrong: 0,
+  lastSeenAt: null,
+);
 
 QuizQuestion _question(Kanji kanji, {int correctIndex = 0}) => QuizQuestion(
-      kanji: kanji,
-      mode: QuizMode.meaning,
-      options: const ['a', 'b', 'c', 'd'],
-      correctIndex: correctIndex,
-    );
+  kanji: kanji,
+  mode: QuizMode.meaning,
+  options: const ['a', 'b', 'c', 'd'],
+  correctIndex: correctIndex,
+);
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 
@@ -92,22 +92,21 @@ void main() {
     mockRecordAnswer = MockRecordAnswer();
 
     // Default stubs
-    when(() => mockGetKanji(any())).thenAnswer(
-      (_) async => Success<List<Kanji>>(levelKanjiList),
-    );
+    when(
+      () => mockGetKanji(any()),
+    ).thenAnswer((_) async => Success<List<Kanji>>(levelKanjiList));
     when(() => mockEnsure(any())).thenAnswer((_) async => poolList);
     when(() => mockRecordAnswer(any())).thenAnswer((_) async => poolList);
   });
 
-  QuizCubit makeCubit({int sessionLength = 3}) => QuizCubit(
-        ensurePoolInitialized: mockEnsure,
-        getKanjiByLevel: mockGetKanji,
-        generateQuiz: mockGenerateQuiz,
-        gradeAnswer: mockGradeAnswer,
-        recordAnswer: mockRecordAnswer,
-        random: Random(42),
-        sessionLength: sessionLength,
-      );
+  QuizCubit makeCubit() => QuizCubit(
+    ensurePoolInitialized: mockEnsure,
+    getKanjiByLevel: mockGetKanji,
+    generateQuiz: mockGenerateQuiz,
+    gradeAnswer: mockGradeAnswer,
+    recordAnswer: mockRecordAnswer,
+    random: Random(42),
+  );
 
   // ── start → emits Loading then a QuizQuestionState ──────────────────────
 
@@ -119,20 +118,24 @@ void main() {
       return makeCubit();
     },
     act: (cubit) => cubit.start(JlptLevel.n5, QuizMode.meaning),
-    expect: () => [
-      isA<QuizLoading>(),
-      isA<QuizQuestionState>(),
-    ],
+    expect: () => [isA<QuizLoading>(), isA<QuizQuestionState>()],
   );
 
-  // ── answering correctly increments correct + advances ────────────────────
+  // ── answering correctly advances + currentKanjiHits reflects hitCount ───
 
   blocTest<QuizCubit, QuizState>(
-    'answer correct increments correct count and shows answered state',
+    'answer correct shows answered state with lastCorrect=true and reflects currentKanjiHits',
     build: () {
       final question = _question(levelKanjiList[0], correctIndex: 0);
       when(() => mockGenerateQuiz(any())).thenReturn(question);
       when(() => mockGradeAnswer(any())).thenReturn(true);
+      // Pool updated: 一 now has hitCount=1
+      final updatedPool = [
+        _progress('一', hitCount: 1),
+        _progress('二'),
+        _progress('三'),
+      ];
+      when(() => mockRecordAnswer(any())).thenAnswer((_) async => updatedPool);
       return makeCubit();
     },
     act: (cubit) async {
@@ -142,14 +145,16 @@ void main() {
     expect: () => [
       isA<QuizLoading>(),
       isA<QuizQuestionState>()
-          .having((s) => s.answered, 'answered', false),
+          .having((s) => s.answered, 'answered', false)
+          .having((s) => s.currentKanjiHits, 'currentKanjiHits', 0),
       isA<QuizQuestionState>()
           .having((s) => s.answered, 'answered', true)
-          .having((s) => s.lastCorrect, 'lastCorrect', true),
+          .having((s) => s.lastCorrect, 'lastCorrect', true)
+          .having((s) => s.currentKanjiHits, 'currentKanjiHits', 1),
     ],
   );
 
-  // ── answering wrong pushes to requeue; missed kanji reappears ────────────
+  // ── wrong answer requeues; missed kanji reappears ────────────────────────
 
   blocTest<QuizCubit, QuizState>(
     'wrong answer pushes literal to requeue; it reappears on next() call',
@@ -158,7 +163,7 @@ void main() {
       final question = _question(firstKanji, correctIndex: 0);
       when(() => mockGenerateQuiz(any())).thenReturn(question);
       when(() => mockGradeAnswer(any())).thenReturn(false); // always wrong
-      return makeCubit(sessionLength: 10);
+      return makeCubit();
     },
     act: (cubit) async {
       await cubit.start(JlptLevel.n5, QuizMode.meaning);
@@ -181,40 +186,134 @@ void main() {
     },
   );
 
-  // ── session ends with QuizFinished after sessionLength answers ───────────
+  // ── quiz is INFINITE — never emits a terminal state after many answers ───
 
-  blocTest<QuizCubit, QuizState>(
-    'session emits QuizFinished after sessionLength answers',
-    build: () {
+  test(
+    'quiz is infinite: answering 15 times always stays on QuizQuestionState',
+    () async {
       final question = _question(levelKanjiList[0], correctIndex: 0);
       when(() => mockGenerateQuiz(any())).thenReturn(question);
       when(() => mockGradeAnswer(any())).thenReturn(true);
-      return makeCubit(sessionLength: 2);
-    },
-    act: (cubit) async {
+      when(() => mockRecordAnswer(any())).thenAnswer((_) async => poolList);
+
+      final cubit = makeCubit();
       await cubit.start(JlptLevel.n5, QuizMode.meaning);
-      // answer 1
-      await cubit.answer(0);
-      await cubit.next();
-      // answer 2
-      await cubit.answer(0);
-      await cubit.next(); // should emit QuizFinished
+
+      for (var iteration = 0; iteration < 15; iteration++) {
+        expect(
+          cubit.state,
+          isA<QuizQuestionState>(),
+          reason: 'Should be in QuizQuestionState before answer $iteration',
+        );
+        await cubit.answer(0);
+        expect(
+          cubit.state,
+          isA<QuizQuestionState>(),
+          reason: 'Should stay QuizQuestionState after answer $iteration',
+        );
+        await cubit.next();
+      }
+
+      expect(
+        cubit.state,
+        isA<QuizQuestionState>(),
+        reason: 'After 15 rounds, quiz must still be active (no finish state)',
+      );
+
+      await cubit.close();
     },
-    expect: () => [
-      isA<QuizLoading>(),
-      // Q1 shown
-      isA<QuizQuestionState>().having((s) => s.answered, 'answered', false),
-      // Q1 answered
-      isA<QuizQuestionState>().having((s) => s.answered, 'answered', true),
-      // Q2 shown
-      isA<QuizQuestionState>().having((s) => s.answered, 'answered', false),
-      // Q2 answered
-      isA<QuizQuestionState>().having((s) => s.answered, 'answered', true),
-      // Session done
-      isA<QuizFinished>()
-          .having((s) => s.total, 'total', 2)
-          .having((s) => s.correct, 'correct', 2),
-    ],
+  );
+
+  // ── justMastered is true when the 10th correct answer lands ─────────────
+
+  test(
+    'justMastered is true when kanji hitCount reaches kMasteryTarget',
+    () async {
+      final targetKanji = levelKanjiList[0]; // 一
+      final question = _question(targetKanji, correctIndex: 0);
+      when(() => mockGenerateQuiz(any())).thenReturn(question);
+      when(() => mockGradeAnswer(any())).thenReturn(true);
+
+      // Simulate pool where 一 is at hitCount = kMasteryTarget - 1 before this answer,
+      // and RecordAnswer bumps it to kMasteryTarget.
+      final poolBeforeFinalHit = [
+        _progress('一', hitCount: kMasteryTarget - 1),
+        _progress('二'),
+        _progress('三'),
+      ];
+      final poolAfterFinalHit = [
+        _progress('一', hitCount: kMasteryTarget),
+        _progress('二'),
+        _progress('三'),
+      ];
+
+      // First start: pool has hitCount = kMasteryTarget - 1 for 一
+      when(() => mockEnsure(any())).thenAnswer((_) async => poolBeforeFinalHit);
+      // RecordAnswer returns the mastered pool
+      when(
+        () => mockRecordAnswer(any()),
+      ).thenAnswer((_) async => poolAfterFinalHit);
+
+      final cubit = makeCubit();
+      await cubit.start(JlptLevel.n5, QuizMode.meaning);
+
+      // Pre-answer state: currentKanjiHits should be kMasteryTarget - 1
+      final preAnswerState = cubit.state as QuizQuestionState;
+      expect(preAnswerState.currentKanjiHits, equals(kMasteryTarget - 1));
+      expect(preAnswerState.justMastered, isFalse);
+
+      await cubit.answer(0);
+
+      final postAnswerState = cubit.state as QuizQuestionState;
+      expect(postAnswerState.currentKanjiHits, equals(kMasteryTarget));
+      expect(
+        postAnswerState.justMastered,
+        isTrue,
+        reason:
+            'justMastered must be true when hitCount reaches kMasteryTarget',
+      );
+
+      await cubit.close();
+    },
+  );
+
+  // ── justMastered is false when already mastered ──────────────────────────
+
+  test(
+    'justMastered is false when kanji was already at kMasteryTarget',
+    () async {
+      final targetKanji = levelKanjiList[0];
+      final question = _question(targetKanji, correctIndex: 0);
+      when(() => mockGenerateQuiz(any())).thenReturn(question);
+      when(() => mockGradeAnswer(any())).thenReturn(true);
+
+      // Already mastered before this answer
+      final alreadyMasteredPool = [
+        _progress('一', hitCount: kMasteryTarget),
+        _progress('二'),
+        _progress('三'),
+      ];
+      when(
+        () => mockEnsure(any()),
+      ).thenAnswer((_) async => alreadyMasteredPool);
+      when(
+        () => mockRecordAnswer(any()),
+      ).thenAnswer((_) async => alreadyMasteredPool);
+
+      final cubit = makeCubit();
+      await cubit.start(JlptLevel.n5, QuizMode.meaning);
+      await cubit.answer(0);
+
+      final postAnswerState = cubit.state as QuizQuestionState;
+      expect(
+        postAnswerState.justMastered,
+        isFalse,
+        reason:
+            'justMastered must be false when already at target before answering',
+      );
+
+      await cubit.close();
+    },
   );
 
   // ── selectedIndex is set after answering ────────────────────────────────
@@ -240,43 +339,6 @@ void main() {
           .having((s) => s.answered, 'answered', true)
           .having((s) => s.selectedIndex, 'selectedIndex', 2)
           .having((s) => s.lastCorrect, 'lastCorrect', false),
-    ],
-  );
-
-  // ── QuizFinished carries correct count ───────────────────────────────────
-
-  blocTest<QuizCubit, QuizState>(
-    'QuizFinished reports correct count accurately',
-    build: () {
-      final question = _question(levelKanjiList[0], correctIndex: 0);
-      when(() => mockGenerateQuiz(any())).thenReturn(question);
-      // First call correct, second call wrong
-      var callCount = 0;
-      when(() => mockGradeAnswer(any())).thenAnswer((_) {
-        callCount++;
-        return callCount == 1; // first correct, subsequent wrong
-      });
-      return makeCubit(sessionLength: 2);
-    },
-    act: (cubit) async {
-      await cubit.start(JlptLevel.n5, QuizMode.meaning);
-      await cubit.answer(0); // correct
-      await cubit.next();
-      await cubit.answer(1); // wrong (and this requeues, but session ends anyway at 2)
-      // The requeue only matters if sessionLength > 2; here next() triggers finish
-      await cubit.next();
-    },
-    expect: () => [
-      isA<QuizLoading>(),
-      isA<QuizQuestionState>(),
-      isA<QuizQuestionState>()
-          .having((s) => s.lastCorrect, 'lastCorrect', true),
-      isA<QuizQuestionState>(),
-      isA<QuizQuestionState>()
-          .having((s) => s.lastCorrect, 'lastCorrect', false),
-      isA<QuizFinished>()
-          .having((s) => s.total, 'total', 2)
-          .having((s) => s.correct, 'correct', 1),
     ],
   );
 }

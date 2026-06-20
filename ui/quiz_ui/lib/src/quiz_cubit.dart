@@ -16,15 +16,13 @@ class QuizCubit extends Cubit<QuizState> {
     required GradeAnswer gradeAnswer,
     required RecordAnswer recordAnswer,
     required Random random,
-    int sessionLength = 10,
-  })  : _ensurePoolInitialized = ensurePoolInitialized,
-        _getKanjiByLevel = getKanjiByLevel,
-        _generateQuiz = generateQuiz,
-        _gradeAnswer = gradeAnswer,
-        _recordAnswer = recordAnswer,
-        _random = random,
-        _sessionLength = sessionLength,
-        super(const QuizLoading());
+  }) : _ensurePoolInitialized = ensurePoolInitialized,
+       _getKanjiByLevel = getKanjiByLevel,
+       _generateQuiz = generateQuiz,
+       _gradeAnswer = gradeAnswer,
+       _recordAnswer = recordAnswer,
+       _random = random,
+       super(const QuizLoading());
 
   final EnsurePoolInitialized _ensurePoolInitialized;
   final GetKanjiByLevel _getKanjiByLevel;
@@ -32,14 +30,11 @@ class QuizCubit extends Cubit<QuizState> {
   final GradeAnswer _gradeAnswer;
   final RecordAnswer _recordAnswer;
   final Random _random;
-  final int _sessionLength;
 
   List<Kanji> _levelKanji = [];
   List<KanjiProgress> _pool = [];
   QuizMode _mode = QuizMode.meaning;
   String? _lastShown;
-  int _total = 0;
-  int _correct = 0;
   final List<String> _requeue = [];
 
   // The current question, stored so answer() can reference it.
@@ -49,8 +44,6 @@ class QuizCubit extends Cubit<QuizState> {
   Future<void> start(JlptLevel level, QuizMode mode) async {
     emit(const QuizLoading());
     _mode = mode;
-    _total = 0;
-    _correct = 0;
     _lastShown = null;
     _requeue.clear();
     _answered = false;
@@ -73,11 +66,6 @@ class QuizCubit extends Cubit<QuizState> {
   }
 
   Future<void> _emitNext() async {
-    if (_total >= _sessionLength) {
-      emit(QuizFinished(total: _total, correct: _correct));
-      return;
-    }
-
     QuizQuestion? question;
 
     if (_requeue.isNotEmpty) {
@@ -129,7 +117,11 @@ class QuizCubit extends Cubit<QuizState> {
     );
 
     if (question == null) {
-      emit(QuizFinished(total: _total, correct: _correct));
+      emit(
+        const QuizError(
+          'No eligible kanji to quiz. Add more kanji to continue.',
+        ),
+      );
       return;
     }
 
@@ -137,12 +129,15 @@ class QuizCubit extends Cubit<QuizState> {
     _lastShown = question.kanji.literal;
     _answered = false;
 
+    final currentHits = _poolHitsFor(question.kanji.literal);
+
     emit(
       QuizQuestionState(
         question: question,
         answered: false,
-        answeredCount: _total,
-        sessionLength: _sessionLength,
+        currentKanjiHits: currentHits,
+        masteryTarget: kMasteryTarget,
+        justMastered: false,
       ),
     );
   }
@@ -152,6 +147,8 @@ class QuizCubit extends Cubit<QuizState> {
     _answered = true;
 
     final question = _currentQuestion!;
+    final hitsBeforeAnswer = _poolHitsFor(question.kanji.literal);
+
     final isCorrect = _gradeAnswer(
       GradeParams(question: question, selectedIndex: selectedIndex),
     );
@@ -164,13 +161,14 @@ class QuizCubit extends Cubit<QuizState> {
       ),
     );
 
-    _total++;
-    if (isCorrect) {
-      _correct++;
-    } else {
+    if (!isCorrect) {
       // Push the missed literal into the requeue so it reappears this session.
       _requeue.add(question.kanji.literal);
     }
+
+    final hitsAfterAnswer = _poolHitsFor(question.kanji.literal);
+    final justMastered =
+        hitsBeforeAnswer < kMasteryTarget && hitsAfterAnswer >= kMasteryTarget;
 
     emit(
       QuizQuestionState(
@@ -178,11 +176,19 @@ class QuizCubit extends Cubit<QuizState> {
         answered: true,
         lastCorrect: isCorrect,
         selectedIndex: selectedIndex,
-        answeredCount: _total,
-        sessionLength: _sessionLength,
+        currentKanjiHits: hitsAfterAnswer,
+        masteryTarget: kMasteryTarget,
+        justMastered: justMastered,
       ),
     );
   }
 
   Future<void> next() => _emitNext();
+
+  int _poolHitsFor(String literal) {
+    for (final entry in _pool) {
+      if (entry.literal == literal) return entry.hitCount;
+    }
+    return 0;
+  }
 }

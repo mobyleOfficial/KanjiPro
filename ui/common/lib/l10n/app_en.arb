@@ -38,20 +38,6 @@
   "@correct": {},
   "wrong": "Wrong",
   "@wrong": {},
-  "results": "Results",
-  "@results": {},
-  "quizScore": "{correct} / {total}",
-  "@quizScore": {
-    "description": "Quiz result score label showing correct answers over total",
-    "placeholders": {
-      "correct": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
-  "retry": "Retry",
-  "@retry": { "description": "Button label to retry the quiz" },
-  "backToHome": "Back to Home",
-  "@backToHome": { "description": "Button label to return to home screen" },
   "next": "Next",
   "@next": { "description": "Button label to advance to the next quiz question" },
   "chooseMode": "Choose a mode",
@@ -59,5 +45,9 @@
   "speakAloud": "Speak aloud",
   "@speakAloud": {},
   "examples": "Examples",
-  "@examples": { "description": "Section header for usage examples on the study flashcard" }
+  "@examples": { "description": "Section header for usage examples on the study flashcard" },
+  "mastered": "Mastered!",
+  "@mastered": { "description": "Banner shown when a kanji reaches full mastery" },
+  "mastery": "Mastery",
+  "@mastery": { "description": "Label for the per-kanji mastery progress row" }
 }

@@ -12,28 +12,29 @@ class QuizQuestionState extends QuizState {
   const QuizQuestionState({
     required this.question,
     required this.answered,
+    required this.currentKanjiHits,
+    required this.masteryTarget,
+    required this.justMastered,
     this.lastCorrect,
     this.selectedIndex,
-    required this.answeredCount,
-    required this.sessionLength,
   });
 
   final QuizQuestion question;
   final bool answered;
+
+  /// Current kanji's hitCount from the progress pool.
+  final int currentKanjiHits;
+
+  /// The mastery target (= kMasteryTarget).
+  final int masteryTarget;
+
+  /// True when this answer brought the kanji from below target to exactly target.
+  final bool justMastered;
+
   final bool? lastCorrect;
 
   /// The option index the user tapped, or null if not yet answered.
   final int? selectedIndex;
-
-  final int answeredCount;
-  final int sessionLength;
-}
-
-class QuizFinished extends QuizState {
-  const QuizFinished({required this.total, required this.correct});
-
-  final int total;
-  final int correct;
 }
 
 class QuizError extends QuizState {
