@@ -25,8 +25,10 @@ class HomeView extends StatelessWidget {
     super.key,
   });
 
-  final void Function(JlptLevel level)? onLevelTap;
-  final void Function(JlptLevel level)? onQuizTap;
+  /// Invoked when the user taps Study/Quiz. Returns a Future that completes
+  /// when navigation pops back, so the home can reload progress on return.
+  final Future<void> Function(JlptLevel level)? onLevelTap;
+  final Future<void> Function(JlptLevel level)? onQuizTap;
 
   @override
   Widget build(BuildContext context) => BlocProvider<HomeCubit>(
@@ -38,8 +40,8 @@ class HomeView extends StatelessWidget {
 class _HomeContent extends StatelessWidget {
   const _HomeContent({this.onLevelTap, this.onQuizTap});
 
-  final void Function(JlptLevel level)? onLevelTap;
-  final void Function(JlptLevel level)? onQuizTap;
+  final Future<void> Function(JlptLevel level)? onLevelTap;
+  final Future<void> Function(JlptLevel level)? onQuizTap;
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +75,8 @@ class _LevelList extends StatelessWidget {
 
   final List<LevelProgress> levels;
   final AppLocalizations localizations;
-  final void Function(JlptLevel level)? onLevelTap;
-  final void Function(JlptLevel level)? onQuizTap;
+  final Future<void> Function(JlptLevel level)? onLevelTap;
+  final Future<void> Function(JlptLevel level)? onQuizTap;
 
   String _levelLabel(AppLocalizations l10n, JlptLevel level) => switch (level) {
         JlptLevel.n5 => l10n.levelN5,
@@ -97,8 +99,14 @@ class _LevelList extends StatelessWidget {
             percent: percent,
             progressValue: levelProgress.percent,
             localizations: localizations,
-            onStudyTap: () => onLevelTap?.call(levelProgress.level),
-            onQuizTap: () => onQuizTap?.call(levelProgress.level),
+            onStudyTap: () async {
+              await onLevelTap?.call(levelProgress.level);
+              if (context.mounted) context.read<HomeCubit>().load();
+            },
+            onQuizTap: () async {
+              await onQuizTap?.call(levelProgress.level);
+              if (context.mounted) context.read<HomeCubit>().load();
+            },
           );
         },
       );

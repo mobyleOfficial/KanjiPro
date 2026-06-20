@@ -23,12 +23,14 @@ class GetLevelProgress extends UseCase<JlptLevel, LevelProgress> {
     final locked = records
         .where((p) => p.status == ProgressStatus.locked)
         .length;
+    final totalHits = records.fold<int>(0, (sum, p) => sum + p.hitCount);
     return LevelProgress(
       level: level,
       mastered: mastered,
       learning: learning,
       locked: locked,
       total: records.length,
+      totalHits: totalHits,
     );
   }
 }
