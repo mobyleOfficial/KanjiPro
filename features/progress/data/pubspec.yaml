@@ -1,0 +1,36 @@
+name: progress_data
+description: Data layer for the progress feature (ObjectBox persistence).
+publish_to: 'none'
+version: 0.0.1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  core:
+    path: ../../../core
+  kanji_domain:
+    path: ../../kanji/domain
+  progress_domain:
+    path: ../domain
+  objectbox: ^4.0.0
+  objectbox_flutter_libs: ^4.0.0
+  injectable: ^2.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.0
+  objectbox_generator: ^4.0.0
+  mocktail: ^1.0.0
+
+dependency_overrides:
+  analyzer: 7.7.1
+  _fe_analyzer_shared: 85.0.0
+  dart_style: 3.1.1
+  build: 2.5.4
+  build_runner_core: 9.1.2
+  build_resolvers: 2.5.4
+  source_gen: 2.0.0

@@ -1,0 +1,13 @@
+name: progress
+description: Feature barrel re-exporting progress_domain and progress_data.
+publish_to: 'none'
+version: 0.0.1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  progress_domain:
+    path: ./domain
+  progress_data:
+    path: ./data

@@ -14,6 +14,10 @@ dependencies:
     sdk: flutter
   core:
     path: core
+  progress_domain:
+    path: features/progress/domain
+  progress_data:
+    path: features/progress/data
   flutter_bloc: ^9.0.0
   get_it: ^8.0.0
   injectable: ^2.5.0
